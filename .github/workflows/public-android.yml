@@ -4,7 +4,7 @@ on:
   pull_request:
   workflow_dispatch:
 concurrency:
-  group: public-android-${{ github.head_ref || github.ref }}
+  group: public-android-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 permissions:
   contents: read

@@ -22,7 +22,7 @@ def matches_approved_artwork(path, expected):
 # Audited original GUI source. Only the exact reviewed Git blob contents are
 # allowed to be shipped, and no real IP, token or internal topology may occur.
 APPROVED_UI_ASSETS = {
-    "app/src/main/assets/app.js": "153d7761cbd55e56f124c12c23029bf3422b89a3",
+    "app/src/main/assets/app.js": "64e49f1bc579ba9e756b488bb259fb9ef40a5baf",
     "app/src/main/assets/backup.js": "5bb9568de153b74f46d21f594575858e721765c7",
     "app/src/main/assets/brand-a.svg": "d17e18dd6060db991911123cade92ac1c52cd069",
     "app/src/main/assets/brand-b.svg": "b29b1cde32d61675603943466ca7b4bece473c41",
