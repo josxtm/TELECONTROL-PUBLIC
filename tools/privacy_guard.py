@@ -19,6 +19,34 @@ def matches_approved_artwork(path, expected):
     return hashlib.sha1(b"blob " + str(len(payload)).encode("ascii") + b"\x00" + payload).hexdigest() == expected
 
 
+# Audited original GUI source. Only the exact reviewed Git blob contents are
+# allowed to be shipped, and no real IP, token or internal topology may occur.
+APPROVED_UI_ASSETS = {
+    "app/src/main/assets/app.js": "153d7761cbd55e56f124c12c23029bf3422b89a3",
+    "app/src/main/assets/backup.js": "5bb9568de153b74f46d21f594575858e721765c7",
+    "app/src/main/assets/brand-a.svg": "d17e18dd6060db991911123cade92ac1c52cd069",
+    "app/src/main/assets/brand-b.svg": "b29b1cde32d61675603943466ca7b4bece473c41",
+    "app/src/main/assets/catalog-store.js": "1b5f1ebd197680126706b8b7b8d11e96b76c5ace",
+    "app/src/main/assets/catalog-worker.js": "08c6ba79d64db2b5c3a188cf4ef443130567e4b3",
+    "app/src/main/assets/catalog.js": "7a501925da397a3d334702ead59da12371c0622a",
+    "app/src/main/assets/icons.js": "bbbc10a065d0b64bdeeed3a57376172182bf3a9a",
+    "app/src/main/assets/index.html": "63da648b73d449c519d9d0160b6495b0ff990f80",
+    "app/src/main/assets/journal-search.js": "b57bf86bdeb183e4b6654cfb666637f8fa28e2be",
+    "app/src/main/assets/ocr/LICENSE.txt": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+    "app/src/main/assets/reminders.js": "b4d7ad27eb83352e2b5ae6d9f46fd9611d467c99",
+    "app/src/main/assets/speech.js": "6013c00a22896e95b5dff6950fe948abccf4f6d3",
+    "app/src/main/assets/sync-core.js": "c87a359fcb9f1ca385cd43fafdcc99ab9e881dde",
+    "app/src/main/assets/sync-ui.js": "0ceb38014c28ea709310f461254029d89361979d",
+    "app/src/main/assets/tcs-clients.js": "acc77596093e09b7c40bdeb099a6d763aa2c3ddc",
+    "app/src/main/assets/themes.css": "81ecca9ac224f2f0d6c1ee90d258abe7ecad91e3",
+    "app/src/main/assets/themes.js": "84ed6bbf79cd1e58018d9417ff246231823a422b",
+    "app/src/main/assets/weekly-core.js": "ccc0688eb46ffca8f0dcc61abc88e0ba082c16aa",
+    "app/src/main/assets/weekly-ui.js": "6adca767c3b969ad9d270d8ee4f956b4bf07ed8d",
+    "app/src/main/assets/work-store.js": "53439c911d6167b69d574b34851284e10ef6872a",
+    "app/src/main/assets/work-ui.js": "292d45a86d88bbb5cd9a3015111d635e23bcf0d7"
+}
+TOPOLOGY = re.compile(r"LAN\\s*\\+\\s*(?:1|2|3|9|10|11|13|14)|\\b(?:GIC1|GIC2|GIC3|GIN1)\\b", re.I)
+
 BLOCK_EXT = {".keystore", ".jks", ".p12", ".pfx", ".pem", ".key", ".csv",
              ".xls", ".xlsx", ".xlsm", ".sqlite", ".sqlite3", ".db",
              ".apk", ".aab", ".gz", ".zip", ".7z", ".pdf", ".docx"}
@@ -43,6 +71,20 @@ def check(root):
             continue
         if p.is_symlink():
             problems.append((rel, "unreviewed symbolic link"))
+            continue
+        if rel in APPROVED_UI_ASSETS:
+            if not matches_approved_artwork(p, APPROVED_UI_ASSETS[rel]):
+                problems.append((rel, "GUI asset differs from reviewed source"))
+            elif p.stat().st_size > 200_000:
+                problems.append((rel, "oversized GUI asset"))
+            else:
+                try:
+                    s = p.read_text(encoding="utf-8")
+                except UnicodeError:
+                    problems.append((rel, "invalid GUI source encoding"))
+                    continue
+                if IP.search(s) or KEY.search(s) or PASSWORD.search(s) or TOPOLOGY.search(s):
+                    problems.append((rel, "private operational content in GUI source"))
             continue
         if any(part in {"assets", "raw"} for part in p.relative_to(root).parts):
             problems.append((rel, "bundled data requires separate review"))
@@ -82,6 +124,12 @@ def check(root):
             )
             if not permitted_ssh:
                 problems.append((rel, "network permission without isolated SSH component"))
+        # Reviewed GUI bridge and offline functionality may contain public field
+        # labels and company names, but NEVER internal IPs, secrets or topology.
+        if rel.startswith("app/src/main/java/es/josxtm/telecontrol/"):
+            if IP.search(s) or KEY.search(s) or PASSWORD.search(s) or TOPOLOGY.search(s):
+                problems.append((rel, "private operational content in native code"))
+            continue
         if CORPORATE.search(s) or NET.search(s) or KEY.search(s) or PASSWORD.search(s) or IP.search(s):
             problems.append((rel, "sensitive-pattern candidate"))
     return sorted(problems)

@@ -38,6 +38,25 @@ class PublicGuardTest(unittest.TestCase):
             target.write_bytes(b"not approved")
             self.assertTrue(check(root))
 
+    def test_audited_gui_asset_integrity(self):
+        source = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as root:
+            original = source / "app/src/main/assets/index.html"
+            self.assertTrue(original.is_file())
+            target = Path(root) / "app/src/main/assets/index.html"
+            target.parent.mkdir(parents=True)
+            target.write_bytes(original.read_bytes())
+            self.assertEqual(check(root), [])
+            target.write_text("overwritten", encoding="utf-8")
+            self.assertTrue(check(root))
+
+    def test_gui_asset_with_literal_private_address_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / "app/src/main/assets/index.html"
+            target.parent.mkdir(parents=True)
+            target.write_text("192.0.2.44", encoding="utf-8")
+            self.assertTrue(check(root))
+
     def test_keystore_is_rejected(self):
         with tempfile.TemporaryDirectory() as root:
             (Path(root) / "sign.jks").write_bytes(b"test")
