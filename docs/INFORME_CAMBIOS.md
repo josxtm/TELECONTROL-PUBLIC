@@ -1,18 +1,23 @@
-# INFORME_CAMBIOS — inicio de migración segura
+# Informe de cambios — Recuperación GUI de TELECONTROL
 
-## Trabajo realizado
+## Implementado en el repositorio público
 
-- Fijada referencia privada de GUI por rama y commit, con su uso limitado a lectura.
-- Registradas las discrepancias actuales y los requisitos exactos de aceptación.
-- Añadido comprobador estructural independiente del proyecto privado, con tests sintéticos.
-- Añadido bloqueo de publicación del APK en GitHub Actions si falta la estructura mínima de la GUI aprobada.
-- Preservada la fuente pública ya existente, su identificador Android, el almacenamiento y el historial.
-- Ningún dato, captura real, archivo binario ni historial del repositorio privado se ha incluido.
+1. Copia auditada de HTML y estilos de la GUI privada aprobada, sin copiar historiales, catálogos ni datos de usuario.
+2. Portada, menús, configuración, fichas, notas, diario, trabajos, avisos y sincronización de la interfaz original.
+3. Restauración de la Activity WebView y de las clases Android originales necesarias para los módulos previamente desarrollados.
+4. Integración con MangoSSH en otra Activity, tarea y proceso, conservando la navegación principal.
+5. Icono de MangoSSH restaurado desde el repositorio público de ese proyecto y validado byte por byte.
+6. Conservación de identificador público y formato `v.1.0 public - comp. X`.
+7. Auditoría pública de fuentes/activos por hash y rechazo de contenido operacional privado; OCR público por hash.
+8. Instrumentación de prueba para abrir el launcher WebView original, además de las pruebas anteriores.
+9. Controles CI que bloquean un artefacto anunciado como equivalente cuando los elementos originales aún faltan.
 
-## Pendiente
+## No completado
 
-La migración de la interfaz y la equivalencia funcional están **sin completar**. No confundir un build verde con paridad. Ninguna prueba automatizada sustituye la aceptación visual y funcional.
+- Logotipos corporativos originales, pendientes de validación de derechos.
+- Reglas privadas de red, sustituidas temporalmente por un adaptador neutro.
+- Migración probada de datos guardados por otras variantes de la aplicación.
+- Diseño completo original de la pantalla MangoSSH incrustada.
+- Verificación visual real en móvil y tablet y firma estable.
 
-## Identidad visual recuperada parcialmente
-
-Copiados únicamente los cinco PNG del icono lanzador aprobados y revisados, con política de huellas exactas y tests. Continúan pendientes la portada y las demás pantallas; no representa una restauración completa.
+**No afirmar equivalencia completa antes de superar estas pendientes.** Los repositorios privados permanecen intactos.

@@ -1,32 +1,26 @@
-# PARIDAD_GUI — TELECONTROL
+# Paridad de GUI original — TELECONTROL público
 
-**ESTADO: NO ACEPTADA / NO RESTAURADA.** Esta es una auditoría de diferencias, no una afirmación de equivalencia.
+**Estado: EN RESTAURACIÓN, NO ACEPTADA.** La presencia de archivos originales no equivale a conformidad visual y funcional.
 
-Origen **privado, solo lectura:** `josxtm/TELECONTROL`, rama `feat/mangossh-cog-integration`, commit `32b87f14086ad66482322771e78696126beddc0a`. No copiar historial Git ni recursos operativos. El SHA identifica la referencia técnica y no concede permiso para publicarla indiscriminadamente.
+- Fuente privada de referencia, lectura exclusivamente: `josxtm/TELECONTROL`, rama `feat/mangossh-cog-integration`, commit `32b87f14086ad66482322771e78696126beddc0a`.
+- Destino público de desarrollo: `josxtm/TELECONTROL-PUBLIC`, rama `feat/restore-original-gui-v1-public`.
+- GUI original recuperada: pantalla principal HTML/WebView con iconos y barra original, temas CSS, navegación, búsqueda, fichas, diario, trabajo semanal y ajustes.
+- MangoSSH: único cambio de GUI autorizado, icono original con gafas dentro del botón existente. Abre Activity separada y no inicia SSH automáticamente.
+- Se conservó el nombre Android público y la política de no copiar historiales privados.
 
-**Destino público:** `josxtm/TELECONTROL-PUBLIC`, rama `feat/mangossh-public-integration`.
+## Diferencias bloqueantes de aceptación
 
-## Superficies que deben coincidir
+- [ ] Logotipos oficiales originales: por ahora representados por textos neutros del mismo espacio geométrico. No publicar archivos gráficos corporativos sin revisar sus derechos de redistribución.
+- [ ] Módulo de referencia de red: la tabla operativa interna fue excluida. Debe sustituirse por configuración importada únicamente en el dispositivo del técnico; actualmente se muestra un aviso sin datos.
+- [ ] Recuperación de los datos ya guardados por la primera edición pública: se ha conservado su código y almacenamiento, pero no existe migración reversible y probada hacia el modelo WebView de origen.
+- [ ] MangoSSH incrustado debe reproducir la GUI original del cliente independiente, no una pantalla simplificada.
+- [ ] Capturas de comparación en móvil y tablet, con datos sintéticos, aprobadas por el propietario.
+- [ ] Firma persistente y actualización comprobada sin pérdida de datos.
 
-Portada original HTML/CSS/JS; temas; búsqueda y ficha; notas y diario; trabajos; navegación; acceso MangoSSH añadido sin mover otros componentes.
+## Comprobaciones de integridad
 
-## Diferencias bloqueantes
+El filtro público solo admite el conjunto de recursos de frontend revisado e identificado por hash de contenido. Se bloquean binarios desconocidos, credenciales, direcciones de redes incrustadas y módulos de topología no autorizados. Los modelos OCR son materiales públicos verificados por SHA-256.
 
-La edición pública actual usa formularios Android simplificados; no contiene la portada ni las hojas CSS y JS aprobadas. El PR SSH contiene icono y Activity, pero no repara la GUI. Recursos gráficos de terceros y módulos que describan sistemas privados requieren revisión previa. La persistencia de la edición pública existente debe preservarse durante cualquier cambio de frontend.
+`tools/gui_parity_gate.py` exige la presencia de la GUI original **y de sus recursos gráficos aún pendientes** antes de permitir publicar una APK como válida; compilar Android no sustituye esa validación.
 
-## Evidencia y controles
-
-- [ ] Inventario y saneamiento manual de todas las fuentes y recursos destinados a publicar; referencias privadas sin datos reales.
-- [ ] Misma portada, iconografía, temas, geometría, rutas y estados con entradas sintéticas.
-- [ ] Compatibilidad funcional, almacenamiento local y actualizaciones sin pérdida.
-- [ ] Capturas comparativas reales de móvil y tablet revisadas; no incluir capturas con información confidencial.
-- [ ] Pruebas Android, seguridad, firma y APK final verificadas.
-- [ ] Autorización del propietario para integrar el PR en main.
-
-`tools/gui_parity_gate.py` comprueba únicamente presencia de ficheros y marcadores; **no sustituye comparación visual ni garantiza igualdad de funciones**. Mientras falten componentes, la validación de publicación de la APK falla expresamente.
-
-[Incidencia de paridad](https://github.com/josxtm/TELECONTROL-PUBLIC/issues/5) · [PR de trabajo](https://github.com/josxtm/TELECONTROL-PUBLIC/pull/3).
-
-## Launcher original recuperado
-
-Se trasladaron los cinco recursos originales de icono de la aplicación, verificados por SHA del blob Git, y se referencia el icono en el manifiesto público. El resto de la interfaz y sus funciones aún **no** tienen paridad aprobada.
+Relacionado con los PR #3 y #6 y con la incidencia #5.
