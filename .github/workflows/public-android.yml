@@ -8,7 +8,7 @@ permissions:
 jobs:
   apk:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,19 +27,39 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Build isolated public preview
-        run: gradle --no-daemon :app:assembleDebug
-      - name: Verify APK signature and package ID
-        shell: bash
+      - name: Unit tests, Android Lint and isolated public preview
+        run: gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
+      - name: Verify APK identity, version, signature, permissions and resources
+        run: python3 tools/inspect_apk.py app/build/outputs/apk/debug/app-debug.apk "$ANDROID_HOME/build-tools/35.0.0" | tee app/build/apk-verification.txt
+      - name: Enable emulator acceleration
         run: |
-          set -euo pipefail
-          APK=app/build/outputs/apk/debug/app-debug.apk
-          test -s "$APK"
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify "$APK"
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "package: name='es.josxtm.telecontrol.community'"
-      - uses: actions/upload-artifact@v4
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Real Android storage, import, recovery and launch tests
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          name: TELECONTROL-PUBLIC-PUBLIC-PREVIEW-NO-UPDATE
-          path: app/build/outputs/apk/debug/app-debug.apk
+          api-level: 35
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: gradle --no-daemon :app:connectedDebugAndroidTest
+      - name: Upload validated public preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: TELECONTROL-PUBLIC-PREVIEW-NO-PRIVATE-UPDATE
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/apk-verification.txt
           if-no-files-found: error
+          retention-days: 14
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TELECONTROL-PUBLIC-VALIDATION
+          path: |
+            app/build/reports/
+            app/build/outputs/androidTest-results/
+          if-no-files-found: ignore
           retention-days: 14

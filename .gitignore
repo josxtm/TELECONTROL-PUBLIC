@@ -26,3 +26,5 @@ ct_data*
 *privado*
 *confidencial*
 *.json
+__pycache__/
+*.pyc
