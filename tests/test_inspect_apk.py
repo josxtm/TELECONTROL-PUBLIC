@@ -10,7 +10,7 @@ from inspect_apk import inspect
 
 
 class ApkInspectionTest(unittest.TestCase):
-    def run_inspection(self, extra=None, permissions=("android.permission.RECORD_AUDIO", "android.permission.INTERNET"), version="10003", compilation="3", resource="safe synthetic text"):
+    def run_inspection(self, extra=None, permissions=("android.permission.RECORD_AUDIO", "android.permission.INTERNET", "android.permission.CAMERA"), version="10003", compilation="3", resource="safe synthetic text"):
         def command(args, **kwargs):
             if "apksigner" in args[0]:
                 return "Signer #1 certificate SHA-256 digest: synthetic-test-only"
