@@ -13,7 +13,7 @@ android {
         targetSdk 35
         versionCode (10000 + publicComp)
         versionName "v.1.0 public - comp. ${publicComp}"
-        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     packaging {
         resources.excludes += ['META-INF/DEPENDENCIES', 'META-INF/versions/**/OSGI-INF/**']
@@ -34,6 +34,9 @@ dependencies {
     implementation 'androidx.work:work-runtime:2.9.1'
     implementation 'androidx.webkit:webkit:1.12.1'
     testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:core:1.6.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
 }
 
 // Legacy Android framework tests are test-only; production has no runtime dependencies.
