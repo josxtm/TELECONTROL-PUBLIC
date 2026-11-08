@@ -1,5 +1,9 @@
 plugins { id 'com.android.application' }
 
+// Every public CI run has a distinct compilation number; local builds can override it.
+def publicComp = (project.findProperty('publicCompilationNumber') ?: System.getenv('GITHUB_RUN_NUMBER') ?: '3').toString().toInteger()
+if (publicComp < 1 || publicComp > 1_000_000) throw new GradleException('Invalid public compilation number')
+
 android {
     namespace 'es.josxtm.telecontrol.community'
     compileSdk 35
@@ -7,9 +11,12 @@ android {
         applicationId 'es.josxtm.telecontrol.community'
         minSdk 23
         targetSdk 35
-        versionCode 2
-        versionName '0.2.0-public'
+        versionCode (10000 + publicComp)
+        versionName "v.1.0 public - comp. ${publicComp}"
         testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+    }
+    packaging {
+        resources.excludes += ['META-INF/DEPENDENCIES', 'META-INF/versions/**/OSGI-INF/**']
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -17,7 +24,10 @@ android {
     }
 }
 
-dependencies { testImplementation 'junit:junit:4.13.2' }
+dependencies {
+    implementation 'com.github.mwiede:jsch:2.28.8'
+    testImplementation 'junit:junit:4.13.2'
+}
 
 // Legacy Android framework tests are test-only; production has no runtime dependencies.
 dependencies {
