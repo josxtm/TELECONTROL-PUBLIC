@@ -18,12 +18,18 @@ def inspect(apk, build_tools):
         return subprocess.check_output([str(tools / name), *map(str, args)], text=True)
     signature = run("apksigner", "verify", "--print-certs", apk)
     badging = run("aapt", "dump", "badging", apk)
-    if "package: name='es.josxtm.telecontrol.community' versionCode='2'" not in badging:
-        raise ValueError("Unexpected application identity or version")
+    version = re.search(
+        r"package: name='es\\.josxtm\\.telecontrol\\.community' versionCode='([0-9]+)' versionName='v\\.1\\.0 public - comp\\. ([0-9]+)'",
+        badging
+    )
+    if not version or int(version.group(1)) != 10000 + int(version.group(2)):
+        raise ValueError("Unexpected public application identity or compilation version")
     manifest = run("aapt", "dump", "xmltree", apk, "AndroidManifest.xml")
     permissions = re.findall(r"uses-permission: name='([^']+)'", badging)
-    if set(permissions) != {"android.permission.RECORD_AUDIO"}:
+    if set(permissions) != {"android.permission.RECORD_AUDIO", "android.permission.INTERNET"}:
         raise ValueError("Unexpected permissions")
+    if "io.github.josxtm.mangossh.community.MainActivity" not in manifest or ":mangossh" not in manifest:
+        raise ValueError("Isolated MangoSSH activity missing")
     if not re.search(r"allowBackup\([^\n]*=\(type 0x12\)0x0", manifest):
         raise ValueError("Automatic backup must be disabled")
     dex_strings = []
