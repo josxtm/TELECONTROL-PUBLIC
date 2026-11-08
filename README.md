@@ -1,6 +1,6 @@
 # TELECONTROL Público
 
-Edición Android pública independiente, con consulta local de catálogos aportados por el usuario. Paquete `es.josxtm.telecontrol.community`, versión visible **`v.1.0 public - comp. X`**, donde **X** es el número de ejecución de GitHub Actions (o el valor pasado mediante `-PpublicCompilationNumber=X`). `versionCode = 10000 + X`. Se mantiene instalada en paralelo con las ediciones privadas. Se instala en paralelo con las ediciones privadas.
+Edición Android pública independiente, con consulta local de catálogos aportados por el usuario. Paquete `es.josxtm.telecontrol.community`, versión visible **`v.1.0 public - comp. X`**, donde **X** es el número de ejecución de GitHub Actions (o el valor pasado mediante `-PpublicCompilationNumber=X`). `versionCode = 10000 + X`. Se instala en paralelo con las ediciones privadas.
 
 ## Funciones
 
