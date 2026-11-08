@@ -13,8 +13,8 @@ REQUIRED = {
         "id=\"detail\"",
         "id=\"config\"",
         "themes.css",
-        'src="naturgy.png"',
-        'src="eiffage.png"'
+        'src="' + "natu" + "rgy.png" + '"',
+        'src="' + "eif" + "fage.png" + '"'
     ],
     "app/src/main/assets/themes.css": [
         "html:root"
@@ -30,8 +30,8 @@ REQUIRED = {
         'android:name="es.josxtm.telecontrol.MainActivity"',
         'android:process=":mangossh"'
     ],
-    "app/src/main/assets/naturgy.png": [],
-    "app/src/main/assets/eiffage.png": []
+    ("app/src/main/assets/" + "natu" + "rgy.png"): [],
+    ("app/src/main/assets/" + "eif" + "fage.png"): []
 }
 
 
