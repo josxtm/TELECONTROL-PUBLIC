@@ -46,6 +46,10 @@ class ApkInspectionTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.run_inspection(compilation="8")
 
+    def test_fake_launcher_image_blocked(self):
+        with self.assertRaises(ValueError):
+            self.run_inspection(extra="res/mipmap-mdpi-v4/ic_launcher.png")
+
     def test_sensitive_resource_blocked(self):
         with self.assertRaises(ValueError):
             self.run_inspection(resource=".".join(["192", "168", "77", "12"]))

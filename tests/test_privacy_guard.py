@@ -18,6 +18,26 @@ class PublicGuardTest(unittest.TestCase):
             (Path(root) / "test.md").write_text(value, encoding="utf-8")
             self.assertEqual(len(check(root)), 1)
 
+
+    def test_approved_original_icons_pass(self):
+        source_root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as root:
+            for density in ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"):
+                name = f"app/src/main/res/mipmap-{density}/ic_launcher.png"
+                source = source_root / name
+                self.assertTrue(source.is_file())
+                target = Path(root) / name
+                target.parent.mkdir(parents=True)
+                target.write_bytes(source.read_bytes())
+            self.assertEqual(check(root), [])
+
+    def test_modified_icon_is_blocked(self):
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / "app/src/main/res/mipmap-mdpi/ic_launcher.png"
+            target.parent.mkdir(parents=True)
+            target.write_bytes(b"not approved")
+            self.assertTrue(check(root))
+
     def test_keystore_is_rejected(self):
         with tempfile.TemporaryDirectory() as root:
             (Path(root) / "sign.jks").write_bytes(b"test")

@@ -12,3 +12,7 @@
 ## Pendiente
 
 La migración de la interfaz y la equivalencia funcional están **sin completar**. No confundir un build verde con paridad. Ninguna prueba automatizada sustituye la aceptación visual y funcional.
+
+## Identidad visual recuperada parcialmente
+
+Copiados únicamente los cinco PNG del icono lanzador aprobados y revisados, con política de huellas exactas y tests. Continúan pendientes la portada y las demás pantallas; no representa una restauración completa.

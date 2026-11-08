@@ -41,10 +41,15 @@ def inspect(apk, build_tools):
                 continue
             if not (re.fullmatch(r"classes\d*\.dex", name) or name in {"AndroidManifest.xml", "resources.arsc", "META-INF/com/android/build/gradle/app-metadata.properties"}
                     or re.fullmatch(r"res/[A-Za-z0-9_+/-]+\.xml", name)
+                    or re.fullmatch(r"res/mipmap-(?:mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)(?:-v[0-9]+)?/ic_launcher\.png", name)
                     or re.fullmatch(r"META-INF/[A-Za-z0-9_.-]+", name)):
                 raise ValueError("Unreviewed packaged resource")
             if name.startswith("res/raw") or name.startswith("assets/"):
                 raise ValueError("Bundled data is forbidden")
+            if name.startswith("res/mipmap-") and name.endswith("/ic_launcher.png"):
+                artwork = archive.read(name)
+                if not artwork.startswith(bytes.fromhex("89504e470d0a1a0a")) or len(artwork) > 100000:
+                    raise ValueError("Unreviewed launcher image payload")
             if name.startswith("res/") and name.endswith(".xml"):
                 xml_resources.append(run("aapt", "dump", "xmltree", apk, name))
             if name.endswith("app-metadata.properties"):

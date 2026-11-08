@@ -26,3 +26,7 @@ La edición pública actual usa formularios Android simplificados; no contiene l
 `tools/gui_parity_gate.py` comprueba únicamente presencia de ficheros y marcadores; **no sustituye comparación visual ni garantiza igualdad de funciones**. Mientras falten componentes, la validación de publicación de la APK falla expresamente.
 
 [Incidencia de paridad](https://github.com/josxtm/TELECONTROL-PUBLIC/issues/5) · [PR de trabajo](https://github.com/josxtm/TELECONTROL-PUBLIC/pull/3).
+
+## Launcher original recuperado
+
+Se trasladaron los cinco recursos originales de icono de la aplicación, verificados por SHA del blob Git, y se referencia el icono en el manifiesto público. El resto de la interfaz y sus funciones aún **no** tienen paridad aprobada.

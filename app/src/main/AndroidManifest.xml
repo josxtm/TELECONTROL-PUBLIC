@@ -9,7 +9,7 @@
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:usesCleartextTraffic="false"
-        android:icon="@drawable/ic_public"
+        android:icon="@mipmap/ic_launcher"
         android:label="TELECONTROL Público"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
         <!-- Separate Activity, separate task and private process; not externally launchable. -->

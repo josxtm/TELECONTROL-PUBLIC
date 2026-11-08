@@ -3,6 +3,21 @@
 from pathlib import Path
 import re
 import sys
+import hashlib
+
+# User-approved artwork: exact single-purpose PNG blobs only.
+APPROVED_ARTWORK = {
+    "app/src/main/res/mipmap-mdpi/ic_launcher.png": "033c00101e47684bb6142a844f806e68b57090f1",
+    "app/src/main/res/mipmap-hdpi/ic_launcher.png": "465f94b32d6730608dfee56284a1f1e5b938c53c",
+    "app/src/main/res/mipmap-xhdpi/ic_launcher.png": "a9bfbb4163293ad5d7d00b5e9f6b40054a9578f1",
+    "app/src/main/res/mipmap-xxhdpi/ic_launcher.png": "ad3e46913cd021a4c56f9cfa4d8e3192bcba22ca",
+    "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": "5b9d4485c9bfec9d14e5cea11668d10b96e98717"
+}
+
+def matches_approved_artwork(path, expected):
+    payload = path.read_bytes()
+    return hashlib.sha1(b"blob " + str(len(payload)).encode("ascii") + b"\x00" + payload).hexdigest() == expected
+
 
 BLOCK_EXT = {".keystore", ".jks", ".p12", ".pfx", ".pem", ".key", ".csv",
              ".xls", ".xlsx", ".xlsm", ".sqlite", ".sqlite3", ".db",
@@ -31,6 +46,10 @@ def check(root):
             continue
         if any(part in {"assets", "raw"} for part in p.relative_to(root).parts):
             problems.append((rel, "bundled data requires separate review"))
+            continue
+        if rel in APPROVED_ARTWORK:
+            if not matches_approved_artwork(p, APPROVED_ARTWORK[rel]):
+                problems.append((rel, "approved image bytes changed"))
             continue
         if p.suffix.lower() in BLOCK_EXT or NAME.search(rel):
             problems.append((rel, "filename or file type"))
