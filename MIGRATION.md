@@ -8,7 +8,11 @@ Importación incremental con selector Android, índice SQLite por campo configur
 
 ## Exclusiones de seguridad
 
-No se incorporan catálogos, configuración de instalaciones, direcciones operativas, documentos, topologías, capturas, servicios remotos ni materiales internos. No hay permiso de Internet, copias automáticas ni lectura de almacenamiento de otras apps. Los errores no imprimen importaciones. No se registran contenidos. Las pruebas generan datos sintéticos explícitos. El filtro de privacidad conserva sus patrones originales y amplía protección a datos empaquetados, enlaces y permisos de red.
+No se incorporan catálogos, configuración de instalaciones, direcciones operativas, documentos, topologías, capturas, servicios remotos ni materiales internos. La edición anterior no tenía permiso de Internet. En la fase 3 se añade `INTERNET` exclusivamente para SSH iniciado por el usuario, con actividad no exportada en proceso `:mangossh`. No se añaden copias automáticas ni lectura del almacenamiento de otras apps. Los errores no imprimen importaciones. No se registran contenidos. Las pruebas generan datos sintéticos explícitos. El filtro de privacidad conserva sus patrones originales y amplía protección a datos empaquetados, enlaces y permisos de red.
+
+## Fase 3: MangoSSH público aislado
+
+Se reutilizan tres clases Java genéricas y sus pruebas del repositorio público `josxtm/MANGOSSH-PUBLIC` (no del repositorio privado). La portada original conserva todos los controles y añade solamente un icono que abre una pantalla SSH en otra tarea/proceso. El cliente no recibe datos del catálogo ni instala aplicaciones externas. En API 23–25 se muestra aviso, mientras TELECONTROL permanece disponible. Todo acceso de red exige conexión explícita del usuario. Las pruebas automáticas no acreditan todavía conectividad real con equipos físicos.
 
 ## Pruebas y límites
 
