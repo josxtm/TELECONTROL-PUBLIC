@@ -23,5 +23,22 @@ class PublicGuardTest(unittest.TestCase):
             (Path(root) / "sign.jks").write_bytes(b"test")
             self.assertEqual(len(check(root)), 1)
 
+    def test_bundled_data_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / "app/src/main/assets"
+            target.mkdir(parents=True)
+            (target / "catalog.txt").write_text("synthetic", encoding="utf-8")
+            self.assertEqual(len(check(root)), 1)
+
+    def test_symlink_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            (Path(root) / "link.md").symlink_to("missing.md")
+            self.assertEqual(len(check(root)), 1)
+
+    def test_network_permission_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            (Path(root) / "AndroidManifest.xml").write_text("android.permission.INTERNET", encoding="utf-8")
+            self.assertEqual(len(check(root)), 1)
+
 if __name__ == "__main__":
     unittest.main()

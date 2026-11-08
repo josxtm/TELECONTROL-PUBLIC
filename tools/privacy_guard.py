@@ -21,10 +21,16 @@ def check(root):
     root = Path(root)
     problems = []
     for p in root.rglob("*"):
-        if not p.is_file() or p.is_symlink():
+        if not p.is_file() and not p.is_symlink():
             continue
         rel = p.relative_to(root).as_posix()
         if any(part in SKIP for part in p.relative_to(root).parts):
+            continue
+        if p.is_symlink():
+            problems.append((rel, "unreviewed symbolic link"))
+            continue
+        if any(part in {"assets", "raw"} for part in p.relative_to(root).parts):
+            problems.append((rel, "bundled data requires separate review"))
             continue
         if p.suffix.lower() in BLOCK_EXT or NAME.search(rel):
             problems.append((rel, "filename or file type"))
@@ -46,6 +52,8 @@ def check(root):
         except UnicodeError:
             problems.append((rel, "non-text content"))
             continue
+        if p.name == "AndroidManifest.xml" and "android.permission.INTERNET" in s:
+            problems.append((rel, "network permission in offline app"))
         if CORPORATE.search(s) or NET.search(s) or KEY.search(s) or PASSWORD.search(s) or IP.search(s):
             problems.append((rel, "sensitive-pattern candidate"))
     return sorted(problems)
