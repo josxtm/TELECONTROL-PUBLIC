@@ -24,6 +24,14 @@ class ApprovedVisualAssetsTest(unittest.TestCase):
         for glyph in ("terminal:", "weekly:", "camera:", "journal:"):
             self.assertIn(glyph, script)
 
+    def test_original_screen_skeleton_is_present(self):
+        html = (VISUAL / "index.html").read_text(encoding="utf-8")
+        for screen in ("home", "detail", "config", "help", "work", "weekly"):
+            self.assertIn('id="' + screen + '"', html)
+        for control in ("open-search", "search-panel", "map", "catalog-file"):
+            self.assertIn('id="' + control + '"', html)
+        self.assertIn('class="logos"', html)
+
     def test_no_network_literals(self):
         import re
         ip = re.compile(r"(?<![0-9])(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?![0-9])")

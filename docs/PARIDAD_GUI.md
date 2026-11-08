@@ -34,3 +34,7 @@ Se trasladaron los cinco recursos originales de icono de la aplicación, verific
 ## Recuperación real de código de diseño (09/11/2026)
 
 Se han incorporado a `design/original/` los estilos CSS, controlador de seis temas e iconografía SVG originales, tras saneamiento de referencias corporativas en el CSS. Son **fuentes de diseño revisadas**, todavía **no integradas en la APK**. El aspecto actual sigue siendo diferente. La interfaz WebView, sus acciones y su persistencia deben adaptarse sin reemplazar el almacenamiento local existente.
+
+## Portada y pantallas HTML recuperadas como fuente revisada
+
+La estructura HTML original se conserva en `design/original/index.html`, con huecos de igual clase para logos sin permiso, etiquetas operativas neutralizadas y sin archivos JSON reales. El documento está fuera de la APK y no es todavía una interfaz ejecutable. La equivalencia visual requiere marcas autorizadas, enlace de JavaScript y pruebas en dispositivos.
