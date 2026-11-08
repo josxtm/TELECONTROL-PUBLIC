@@ -19,7 +19,7 @@ def inspect(apk, build_tools):
     signature = run("apksigner", "verify", "--print-certs", apk)
     badging = run("aapt", "dump", "badging", apk)
     version = re.search(
-        r"package: name='es\\.josxtm\\.telecontrol\\.community' versionCode='([0-9]+)' versionName='v\\.1\\.0 public - comp\\. ([0-9]+)'",
+        r"package: name='es\.josxtm\.telecontrol\.community' versionCode='([0-9]+)' versionName='v\.1\.0 public - comp\. ([0-9]+)'",
         badging
     )
     if not version or int(version.group(1)) != 10000 + int(version.group(2)):
