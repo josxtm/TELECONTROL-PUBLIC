@@ -30,3 +30,7 @@ La edición pública actual usa formularios Android simplificados; no contiene l
 ## Launcher original recuperado
 
 Se trasladaron los cinco recursos originales de icono de la aplicación, verificados por SHA del blob Git, y se referencia el icono en el manifiesto público. El resto de la interfaz y sus funciones aún **no** tienen paridad aprobada.
+
+## Recuperación real de código de diseño (09/11/2026)
+
+Se han incorporado a `design/original/` los estilos CSS, controlador de seis temas e iconografía SVG originales, tras saneamiento de referencias corporativas en el CSS. Son **fuentes de diseño revisadas**, todavía **no integradas en la APK**. El aspecto actual sigue siendo diferente. La interfaz WebView, sus acciones y su persistencia deben adaptarse sin reemplazar el almacenamiento local existente.

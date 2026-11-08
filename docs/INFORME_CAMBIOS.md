@@ -16,3 +16,7 @@ La migración de la interfaz y la equivalencia funcional están **sin completar*
 ## Identidad visual recuperada parcialmente
 
 Copiados únicamente los cinco PNG del icono lanzador aprobados y revisados, con política de huellas exactas y tests. Continúan pendientes la portada y las demás pantallas; no representa una restauración completa.
+
+## Recuperación de fuentes visuales
+
+Copiados a `design/original` el CSS original (con dos sustituciones de denominación corporativa), el motor de seis temas y la biblioteca de iconos SVG originales. El código permanece fuera de la APK para no habilitar una interfaz parcialmente funcional ni alterar datos. Tests sintéticos y política de privacidad ampliada para revisar `.css` y `.js`.

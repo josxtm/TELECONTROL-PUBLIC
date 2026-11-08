@@ -23,7 +23,7 @@ BLOCK_EXT = {".keystore", ".jks", ".p12", ".pfx", ".pem", ".key", ".csv",
              ".xls", ".xlsx", ".xlsm", ".sqlite", ".sqlite3", ".db",
              ".apk", ".aab", ".gz", ".zip", ".7z", ".pdf", ".docx"}
 READ_EXT = {".gradle", ".java", ".kt", ".kts", ".py", ".sh", ".md",
-            ".yml", ".yaml", ".xml", ".html", ".properties", ".txt"}
+            ".yml", ".yaml", ".xml", ".html", ".css", ".js", ".properties", ".txt"}
 SKIP = {".git", ".gradle", "build", ".idea", "__pycache__"}
 NAME = re.compile(r"ct_data|telecontrol_ct|privado|confidencial|credential|secret|mo[._ -]?01033", re.I)
 CORPORATE = re.compile(r"\b(?:UFD|Naturgy|Eiffage|NaturalCor|TERED|GNFT)\b|MO[. -]?01033", re.I)
