@@ -75,6 +75,12 @@ public final class MainActivity extends Activity {
         mango.setPadding(dp(8), dp(8), dp(8), dp(8));
         column.addView(mango, new LinearLayout.LayoutParams(dp(64), dp(64)));
         mango.setOnClickListener(view -> {
+            if (Build.VERSION.SDK_INT < 26) {
+                new AlertDialog.Builder(this).setTitle("MangoSSH")
+                    .setMessage("El cliente SSH integrado requiere Android 8 o posterior.")
+                    .setPositiveButton("Aceptar", null).show();
+                return;
+            }
             Intent ssh = new Intent(this, io.github.josxtm.mangossh.community.MainActivity.class);
             ssh.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(ssh);
