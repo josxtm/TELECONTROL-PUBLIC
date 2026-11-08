@@ -1,0 +1,63 @@
+// Public OCR resources are prepared during a COG build, never by the installed APK.
+// Uses only JDK/Gradle APIs: Python and GitHub Actions are not required.
+import java.security.MessageDigest
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
+def modelHashes = [
+    spa: '6f2e04d02774a18f01bed44b1111f2cd7f3ba7ac9dc4373cd3f898a40ea6b464',
+    eng: '7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2'
+]
+def modelDirectory = file('src/main/assets/ocr')
+def digest = { File source ->
+    if (!source.isFile() || source.length() > 8_000_000) return ''
+    def sha = MessageDigest.getInstance('SHA-256')
+    source.withInputStream { input ->
+        byte[] chunk = new byte[65536]
+        int count
+        while ((count = input.read(chunk)) != -1) sha.update(chunk, 0, count)
+    }
+    sha.digest().encodeHex().toString()
+}
+
+tasks.register('prepareCogOcr') {
+    group = 'build setup'
+    description = 'Prepare and verify the two public offline OCR models for COG'
+    inputs.property('modelHashes', modelHashes)
+    outputs.files(modelHashes.keySet().collect { new File(modelDirectory, it + '.traineddata') })
+    outputs.upToDateWhen {
+        modelHashes.every { language, hash -> digest(new File(modelDirectory, language + '.traineddata')) == hash }
+    }
+    doLast {
+        modelDirectory.mkdirs()
+        modelHashes.each { language, expected ->
+            File destination = new File(modelDirectory, language + '.traineddata')
+            if (digest(destination) != expected) {
+                def temporary = Files.createTempFile(modelDirectory.toPath(), '.' + language + '-', '.part')
+                def connection = new URL('https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/' + language + '.traineddata').openConnection()
+                connection.connectTimeout = 20000
+                connection.readTimeout = 60000
+                try {
+                    connection.inputStream.withCloseable { input ->
+                        Files.newOutputStream(temporary).withCloseable { output ->
+                            byte[] chunk = new byte[65536]
+                            int count
+                            long total = 0
+                            while ((count = input.read(chunk)) != -1) {
+                                total += count
+                                if (total > 8_000_000) throw new GradleException('Public OCR model exceeds the size limit')
+                                output.write(chunk, 0, count)
+                            }
+                        }
+                    }
+                    if (digest(temporary.toFile()) != expected) throw new GradleException('Public OCR model checksum mismatch')
+                    Files.move(temporary, destination.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                } finally {
+                    Files.deleteIfExists(temporary)
+                    if (connection instanceof HttpURLConnection) connection.disconnect()
+                }
+            }
+        }
+    }
+}
+tasks.named('preBuild').configure { dependsOn tasks.named('prepareCogOcr') }

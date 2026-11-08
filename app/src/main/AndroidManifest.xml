@@ -3,6 +3,11 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <!-- Required only for user-initiated SSH sessions; Android INTERNET is not LAN-scoped. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera.any" android:required="false"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <queries><intent><action android:name="android.speech.RecognitionService"/></intent></queries>
     <application
         android:allowBackup="false"
@@ -11,7 +16,7 @@
         android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher"
         android:label="TELECONTROL Público"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        android:theme="@style/AppTheme">
         <!-- Separate Activity, separate task and private process; not externally launchable. -->
         <activity
             android:name="io.github.josxtm.mangossh.community.MainActivity"
@@ -21,7 +26,29 @@
             android:launchMode="singleTask"
             android:label="MangoSSH"
             android:theme="@android:style/Theme.Material.Light.NoActionBar"/>
-        <activity android:name=".MainActivity" android:exported="true">
+        <receiver android:name="es.josxtm.telecontrol.ReminderReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.weekly-files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/weekly_file_paths"/>
+        </provider>
+        <activity android:name="es.josxtm.telecontrol.weekly.WeeklyCameraActivity"
+            android:exported="false"/>
+        <!-- Original owner-approved TELECONTROL WebView is the HOME and main launcher. -->
+        <activity android:name=".MainActivity" android:exported="false"/>
+        <activity android:name="es.josxtm.telecontrol.MainActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true"
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
