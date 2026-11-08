@@ -10,15 +10,16 @@ from inspect_apk import inspect
 
 
 class ApkInspectionTest(unittest.TestCase):
-    def run_inspection(self, extra=None, permission="android.permission.RECORD_AUDIO", version="2", resource="safe synthetic text"):
+    def run_inspection(self, extra=None, permissions=("android.permission.RECORD_AUDIO", "android.permission.INTERNET"), version="10003", compilation="3", resource="safe synthetic text"):
         def command(args, **kwargs):
             if "apksigner" in args[0]:
                 return "Signer #1 certificate SHA-256 digest: synthetic-test-only"
             if "badging" in args:
                 return ("package: name='es.josxtm.telecontrol.community' versionCode='" + version
-                        + "'\nuses-permission: name='" + permission + "'")
+                        + "' versionName='v.1.0 public - comp. " + compilation + "'\n"
+                        + "".join("uses-permission: name='" + p + "'\n" for p in permissions))
             if "xmltree" in args:
-                return "allowBackup(0x01010280)=(type 0x12)0x0"
+                return "allowBackup(0x01010280)=(type 0x12)0x0\nio.github.josxtm.mangossh.community.MainActivity\n:mangossh"
             return resource
         with tempfile.TemporaryDirectory() as root:
             apk = Path(root) / "synthetic.apk"
@@ -39,9 +40,11 @@ class ApkInspectionTest(unittest.TestCase):
 
     def test_network_permission_and_wrong_version_blocked(self):
         with self.assertRaises(ValueError):
-            self.run_inspection(permission="android.permission.INTERNET")
+            self.run_inspection(permissions=("android.permission.INTERNET",))
         with self.assertRaises(ValueError):
-            self.run_inspection(version="1")
+            self.run_inspection(version="10001")
+        with self.assertRaises(ValueError):
+            self.run_inspection(compilation="8")
 
     def test_sensitive_resource_blocked(self):
         with self.assertRaises(ValueError):
