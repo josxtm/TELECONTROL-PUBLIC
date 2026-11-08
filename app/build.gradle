@@ -13,7 +13,7 @@ android {
         targetSdk 35
         versionCode (10000 + publicComp)
         versionName "v.1.0 public - comp. ${publicComp}"
-        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     packaging {
         resources.excludes += ['META-INF/DEPENDENCIES', 'META-INF/versions/**/OSGI-INF/**']
@@ -26,7 +26,17 @@ android {
 
 dependencies {
     implementation 'com.github.mwiede:jsch:2.28.8'
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'androidx.camera:camera-camera2:1.4.2'
+    implementation 'androidx.camera:camera-lifecycle:1.4.2'
+    implementation 'androidx.camera:camera-view:1.4.2'
+    implementation 'cz.adaptech.tesseract4android:tesseract4android:4.9.0'
+    implementation 'androidx.work:work-runtime:2.9.1'
+    implementation 'androidx.webkit:webkit:1.12.1'
     testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:core:1.6.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
 }
 
 // Legacy Android framework tests are test-only; production has no runtime dependencies.
@@ -35,3 +45,6 @@ dependencies {
         "${android.sdkDirectory}/platforms/android-35/optional/android.test.runner.jar",
         "${android.sdkDirectory}/platforms/android-35/optional/android.test.mock.jar")
 }
+
+// Use pinned, publicly licensed language packs for offline OCR; never bundle CT data.
+apply from: rootProject.file('gradle/cog-ocr.gradle')

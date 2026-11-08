@@ -1,9 +1,15 @@
-# COMPILACIONES — TELECONTROL
+# Compilaciones de recuperación — TELECONTROL
 
-**Referencia CI pública:** [última APK anterior comprobada](https://github.com/josxtm/TELECONTROL-PUBLIC/actions/runs/42525696021). Corresponde al diseño público antiguo y **no cumple** la GUI privada aprobada.
+Repositorio público: `josxtm/TELECONTROL-PUBLIC`  
+Rama: `feat/restore-original-gui-v1-public`
 
-El control `tools/gui_parity_gate.py` se ejecuta **después** de la compilación y pruebas, pero **antes** de publicar una APK. Así CI seguirá dando diagnósticos Android; si no existe la GUI aprobada, no se publicará una candidata engañosa.
+**CI:** https://github.com/josxtm/TELECONTROL-PUBLIC/actions
 
-No existe todavía una APK verificada de migración con paridad real. Las ejecuciones de la nueva rama deben reportarse como pendientes o bloqueadas hasta completar la restauración.
+La primera fase ha conseguido ensamblar Android en runners estándar con la GUI WebView original incorporada. Las ejecuciones posteriores revisan instrumentación, seguridad de activos y pruebas reales de emulador.
 
-**Advertencia:** la firma Debug efímera no garantiza actualizaciones seguras; la identidad y firma permanente requieren validación aparte.
+Un resultado de Gradle correcto **no implica** que la restauración ya haya sido aceptada. El gate de GUI debe impedir publicar una APK como definitiva mientras los recursos originales y funciones privadas pendientes no estén restaurados.
+
+- Prueba de referencia de compilación intermedia: https://github.com/josxtm/TELECONTROL-PUBLIC/actions/runs/42533005509
+- PR de recuperación: https://github.com/josxtm/TELECONTROL-PUBLIC/pull/6
+
+**Firma:** las APK de depuración de GitHub Actions pueden tener certificados distintos entre ejecuciones; no garantizar actualización directa. Se requiere firma persistente protegida para distribuir versiones estables.

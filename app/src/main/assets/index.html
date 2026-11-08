@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; worker-src 'self'; child-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#003b7b">
+<title>TELECONTROL</title>
+<link rel="stylesheet" href="themes.css">
+<style>
+:root { --blue:#003d82; --blue2:#0754a2; --midblue:#104c93; --white:#fff; --orange:#ff8016; }
+*{box-sizing:border-box}
+html,body { margin:0; padding:0; min-height:100%; height:100%; font-family:Roboto,'Arial',system-ui,sans-serif; color:#fff; background:#003e84; }
+body{background:radial-gradient(ellipse 120% 85% at 48% 44%,#07549e 0%,#004a92 45%,#003674 100%);}
+button,input,textarea{font:inherit}
+button{touch-action:manipulation;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #ffad55;outline-offset:3px}
+[hidden]{display:none !important}
+#home {min-height:100dvh;height:auto;display:flex;flex-direction:column;align-items:center;padding:0 20px 30px;position:relative}
+.center-start { width:100%;flex:1;display:flex;align-items:center;flex-direction:column;justify-content:center;padding-top:28px;}
+.bolt {height:184px;width:145px;display:block;margin:0 0 36px;filter:drop-shadow(0 5px 3px #00345f33)}
+.logos {display:flex;align-items:center;justify-content:center;width:100%;gap:9px;margin:0 0 67px;min-height:73px}
+.logo {display:block;object-fit:contain;max-height:71px;flex:1;min-width:0}
+.logo.naturgy {max-width:200px}
+.logo.eiffage {max-width:200px}
+.vertical {height:65px;width:1px;flex:0 0 1px;background:#fff;opacity:.9;margin:0 6px}
+.primary {background:#f9fafc;border:0;color:#073c7b;font-weight:780;box-shadow:0 3px 15px #0b2a5426;border-radius:15px;min-height:76px;width:100%;max-width:545px;display:flex;align-items:center;justify-content:center;gap:19px;font-size:clamp(17px,4.1vw,24px);letter-spacing:-.25px;padding:12px 15px}
+.primary svg{flex-shrink:0}
+#search-panel {position:fixed;inset:0;overflow:auto;background:#001d45a8;z-index:10;display:grid;place-items:center;padding:19px;backdrop-filter:blur(3px)}
+.dialog{width:min(100%,490px);background:#064580; border:1px solid #78ace5;border-radius:19px;padding:24px 18px 20px;box-shadow:0 18px 55px #00183594}
+.dialog-title{font-size:20px;margin:0 0 18px;font-weight:800;text-align:center}
+.dialog label{font-size:12px;color:#eaf2fb;letter-spacing:.7px;font-weight:750;display:block;margin:0 0 8px}
+#query{width:100%;background:#fff;color:#003b7d;border:0;border-radius:12px;min-height:56px;font-size:20px;padding:10px 13px;text-transform:uppercase;font-weight:700;letter-spacing:1px}
+#query::placeholder{color:#7a91aa;font-size:15px;letter-spacing:0;font-weight:500}
+#bad{margin:12px 0 4px;background:#fff0eb;color:#ae2400;border-left:5px solid #ff7222;padding:14px 11px;border-radius:8px;font-weight:780;font-size:16px}
+#load-error {font-size:12px;color:#ffd2ca;margin:14px 0}
+.dialog-actions{display:flex;gap:10px;margin-top:17px}
+.dialog-actions button{flex:1;border:0;border-radius:11px;min-height:51px;padding:11px;font-weight:700}
+#submit{background:#fff;color:#003e82}#cancel{border:1px solid #98c7e4;background:transparent;color:#fff}
+#detail,#config,#help {min-height:100dvh;max-width:720px;margin:0 auto;padding:14px clamp(12px,3.4vw,30px) 24px}
+.topbar{display:flex;align-items:center;gap:6px;min-height:52px;margin:0 0 15px}
+.topbar h1{font-size:clamp(16px,4.0vw,23px);letter-spacing:-.4px;line-height:1.2;margin:0;font-weight:800;text-align:center;flex:1}
+.backicon{display:flex;align-items:center;justify-content:center;border:0;width:42px;min-width:42px;min-height:43px;border-radius:12px;color:#fff;background:transparent}
+.backspace{width:42px;min-width:42px}
+.fields {display:flex;flex-direction:column;margin-bottom:22px}
+.field {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;align-items:center;min-height:44px;border-bottom:1px solid #ffffff25;padding:3px 0}
+.field .name {font-size:clamp(10.8px,2.8vw,15px);line-height:1.2;letter-spacing:-.15px;font-weight:760;overflow-wrap:anywhere}
+.field .value {font-weight:800;font-size:clamp(15px,4vw,19px);line-height:1.25;border-radius:9px;background:#ffffff29;min-height:35px;display:flex;align-items:center;padding:7px 12px;overflow-wrap:anywhere;white-space:pre-wrap}
+.field .value.missing{color:#b8d4ed;font-style:italic;font-weight:400}
+#map{width:100%;min-height:69px;border:0;border-radius:15px;background:#fff;color:#074184;font-weight:810;font-size:clamp(16px,4vw,20px);display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:17px;padding:12px}
+#map:disabled{opacity:.55;cursor:default}
+#coords-warning{font-size:12px;color:#ffd9a5;margin:0 0 12px}
+@media(max-height:690px){.bolt{height:140px;width:110px;margin-bottom:26px}.logos{margin-bottom:42px}.primary{min-height:67px}.center-start{transform:translateY(0)}}
+@media(max-width:365px){.logos{gap:2px}.vertical{margin:0 3px}.field{grid-template-columns:46% 54%}.field .value{padding:5px 7px}.topbar h1{font-size:15px}}
+
+.notes-box{margin:12px 0 24px;padding:16px;border:1px solid #ffffff55;border-radius:14px;background:#002e67aa}.notes-box label{display:block;font-size:17px;font-weight:800;margin-bottom:10px}.notes-box textarea{width:100%;min-height:120px;resize:vertical;background:#fff;color:#063b7c;border:0;border-radius:10px;padding:12px;font-size:17px}.action-small{border:0;border-radius:10px;background:white;color:#063b7c;font-weight:800;padding:12px 18px;margin-top:10px}.version-footer{text-align:center;font-size:13px;opacity:.85;margin-top:20px}.help-content{background:#063e7c;padding:18px;border-radius:14px;line-height:1.5}.utility{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+</style>
+</head>
+<body>
+<section id="home" aria-label="Pantalla principal">
+ <div class="center-start"><h1 class="brand">TELECONTROL</h1>
+  <svg class="bolt" viewBox="0 0 150 195" aria-label="Peligro eléctrico, rayo amarillo" role="img"><path fill="#ffda59" d="M94 1 14 108h63L46 194l91-111H77Z"/></svg>
+  <div class="logos" aria-label="Naturgy y Eiffage Energía">
+   <img class="logo naturgy" src="brand-a.svg" alt="Naturgy">
+   <span class="vertical" aria-hidden="true"></span>
+   <img class="logo eiffage" src="brand-b.svg" alt="Eiffage Energía">
+  </div>
+  <button class="primary" id="open-search" type="button" aria-label="Buscar matrícula" title="Buscar matrícula" aria-expanded="false" aria-controls="search-panel">
+   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg>
+  </button>
+
+ </div>
+ <nav class="home-bottom" aria-label="Accesos rápidos">
+  <div class="home-shortcuts">
+   <button id="open-weekly" class="action-small" aria-label="Gestión de trabajos" title="Gestión de trabajos"></button>
+   <button id="home-mango" type="button" class="action-small" aria-label="Abrir MangoSSH" title="MangoSSH · consola SSH local"><img src="mangossh_launcher.jpg" alt="" aria-hidden="true" style="height:42px;width:42px;object-fit:contain;vertical-align:middle;"></button>
+   <button id="home-help" class="action-small" aria-label="Guía" title="Guía"></button>
+   <button id="home-config" class="action-small" aria-label="Configuración" title="Configuración"></button>
+  </div>
+  <div class="version-footer">v.1.0 public - comp. <span class="installed-build">No disponible</span></div>
+ </nav>
+ <div id="search-panel" role="dialog" aria-modal="true" aria-labelledby="search-title" hidden>
+  <div class="dialog">
+   <h2 class="dialog-title" id="search-title">BUSCAR MATRÍCULA</h2>
+   <label for="query">MATRÍCULA DEL CENTRO</label>
+   <input id="query" type="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="Ej.: SYNTHETIC_CT_2" aria-describedby="bad" maxlength="40">
+   <div id="bad" role="alert" hidden>⚠ CT no encontrado</div>
+   <p id="load-error" hidden>Importa primero el JSON privado desde Configurar → Base de datos.</p>
+   <div class="dialog-actions"><button id="cancel" type="button">CANCELAR</button><button id="submit" type="button">BUSCAR</button></div>
+  </div>
+ </div>
+</section>
+<section id="detail" aria-label="Ficha del centro" hidden>
+ <header class="topbar"><button type="button" class="backicon" id="top-back" aria-label="Volver a buscar"><svg viewBox="0 0 24 24" height="28" width="28" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="m13 5-7 7 7 7M6 12h16"/></svg></button><h1>DATOS CT</h1><span class="backspace"></span></header>
+ <div class="fields" id="fields"></div>
+ <section id="tcs-panel" class="tcs-panel" aria-labelledby="tcs-title"><h2 id="tcs-title">IP CLIENTES TCS</h2><p id="tcs-message" role="status">Las IP se calculan automáticamente a partir de GST y CPU del CT.</p><p id="tcs-experimental" role="note">EXPERIMENTAL, REVISAR SIEMPRE</p><div id="tcs-results" class="tcs-results" aria-live="polite" hidden></div><p class="tcs-source">Fuente: UFD · MO.00408.PT-05 · págs. 46–47. IP1_TCS a IP4_TCS.</p></section>
+ <p id="coords-warning" hidden>No hay coordenadas válidas para este centro.</p>
+ <button id="detail-mango" type="button" class="action-small">SSH MANGO · RED LOCAL</button>
+ <button id="map" type="button">
+   <svg width="34" height="39" viewBox="0 0 28 34" aria-hidden="true"><path d="M14 0A14 14 0 0 0 0 14c0 9.2 14 20 14 20S28 23.2 28 14A14 14 0 0 0 14 0" fill="#33a853"/><path d="M14 0A14 14 0 0 0 0 14h14L23 4A13.9 13.9 0 0 0 14 0" fill="#4285f4"/><path d="M0 14c0 3.8 2.4 8.2 5.2 11.9l9.1-12H0" fill="#fbbc05"/><path d="M4 4a13.9 13.9 0 0 0-4 10h14Z" fill="#ea4335"/><circle cx="14" cy="14" r="5.4" fill="#fff"/></svg>
+   ABRIR EN GOOGLE MAPS
+ </button>
+ <div class="utility detail-actions"><button id="open-notes" type="button" class="action-small" aria-label="Historial de notas del CT"><span class="ui-icon" aria-hidden="true">▤</span><span id="notes-count">0</span></button><button type="button" class="action-small" id="detail-help" aria-label="Ayuda"><span class="ui-icon" aria-hidden="true">?</span><span class="icon-label">AYUDA</span></button><button type="button" class="action-small" id="detail-feedback" aria-label="Sugerencias"><span class="ui-icon" aria-hidden="true">♧</span><span class="icon-label">SUGERENCIAS</span></button><button type="button" class="action-small" id="detail-config" aria-label="Configurar"><span class="ui-icon" aria-hidden="true">⚙</span><span class="icon-label">CONFIGURAR</span></button></div><div class="version-footer">v.1.0 public - comp. <span class="installed-build">No disponible</span></div>
+</section>
+<section id="config" hidden><header class="topbar"><button type="button" class="backicon" id="config-back" aria-label="Volver desde configuración">←</button><h1>CONFIGURAR</h1></header>
+<button class="action-small" id="open-reminders">AVISOS</button><button id="home-feedback" class="action-small">Sugerencias y reporte de errores</button><div class="config-menu" aria-label="Apartados de configuración">
+ <button class="config-tile" type="button" data-config-target="config-database"><span class="config-symbol">▤</span><span><strong>Base de datos</strong><small>Importar JSON · Actualizar catálogo · Información</small></span><span>›</span></button>
+ <button class="config-tile" type="button" data-config-target="config-fields"><span class="config-symbol">☷</span><span><strong>Campos</strong><small>Seleccionar · Añadir · Ordenar</small></span><span>›</span></button>
+ <button class="config-tile" type="button" data-config-target="config-appearance"><span class="config-symbol">◉</span><span><strong>Apariencia</strong><small>Elegir tema · Personalizar colores</small></span><span>›</span></button>
+ <button class="config-tile" type="button" data-config-target="config-backup"><span class="config-symbol">⇧</span><span><strong>Copias de seguridad</strong><small>Exportar · Importar notas y diario</small></span><span>›</span></button>
+ <button class="config-tile" type="button" data-config-target="config-sync"><span class="config-symbol">⇄</span><span><strong>Sincronización Syncthing</strong><small>Carpeta · Cifrado · Estado · Sincronizar</small></span><span>›</span></button>
+</div>
+<div class="notes-box config-section" id="config-database"><h2>Base de datos</h2><div id="catalog-panel" aria-busy="false"><label for="catalog-file">CATÁLOGO PRIVADO DE CT (JSON)</label><input type="file" id="catalog-file" accept=".json,application/json" aria-describedby="catalog-status"><p id="catalog-status" role="status" aria-live="polite">Sin catálogo importado. Selecciona el JSON facilitado por tu responsable.</p></div></div>
+<div class="notes-box config-section" id="config-fields"><h2>Campos</h2><label for="field-search">BUSCAR CAMPO</label><input id="field-search" list="field-options" placeholder="Escribe el nombre del campo" style="width:100%;padding:12px;border-radius:10px"><datalist id="field-options"></datalist><button class="action-small" id="add-field">AÑADIR CAMPO</button><p id="field-status" role="status"></p><div id="selected-fields"></div></div>
+<div class="notes-box config-section" id="config-appearance"><h2>Apariencia</h2><label for="theme-select">TEMA</label><select id="theme-select"><option value="red">ROJO</option><option value="light">CLARO</option><option value="dark">OSCURO</option><option value="olive">VERDE OLIVA</option><option value="blue">AZUL</option><option value="custom">PERSONALIZADO</option></select><div id="custom-colors" hidden></div><p id="theme-status" role="status"></p></div>
+<div class="notes-box config-section" id="config-backup"><h2>Copias de seguridad</h2><p>Las copias contienen notas y diario, pero no el catálogo. Utiliza únicamente medios autorizados.</p><button id="export-work" class="action-small">Exportar notas y diario</button><label for="import-work">Importar copia de notas y diario</label><input id="import-work" type="file" accept=".json,application/json"><p id="backup-status" role="status"></p><div id="backup-preview" hidden><p id="backup-summary"></p><button id="backup-confirm" class="action-small">Confirmar fusión sin sobrescribir</button><button id="backup-cancel" class="action-small">Cancelar</button></div></div>
+<div class="notes-box config-section" id="config-sync"><h2>SINCRONIZACIÓN SYNCTHING</h2>
+<p id="sync-account"></p><button id="sync-folder">Seleccionar carpeta</button>
+<label><input id="sync-auto" type="checkbox" disabled>Sincronización automática</label><button id="sync-now">SINCRONIZAR AHORA</button>
+<label for="sync-phrase">Frase de recuperación compartida (16–1024 caracteres)</label><input id="sync-phrase" type="password" autocomplete="off" minlength="16" maxlength="1024"><button id="sync-unlock">Guardar frase de recuperación</button>
+<p>La frase se protege con Android Keystore. Usa exactamente la misma en los dos dispositivos y consérvala por un medio autorizado. No se comparte el catálogo CT ni la base de datos interna.</p>
+<p id="sync-last"></p><p id="sync-export"></p><p id="sync-status" role="status"></p><p id="sync-pending" role="status"></p>
+<details id="sync-guide"><summary>Guía de configuración</summary><p>Syncthing-Fork debe compartir la misma carpeta lógica en ambos dispositivos en modo enviar y recibir. En TELECONTROL selecciona la carpeta local de cada uno: las rutas pueden ser distintas. Introduce la misma frase y activa automático. Syncthing transfiere los archivos cifrados, incluso con TELECONTROL cerrada; la incorporación a notas/diario se completa al abrir la APK o cuando Android permite un trabajo de fondo.</p><p>Prueba primero una nota y una entrada ficticias en ambos sentidos. No borres ni edites los archivos tcst1: las eliminaciones se realizan desde TELECONTROL. Archivos incompletos se dejan intactos y se reintentan. Un archivo completo que no autentica requiere revisar frase/carpeta. Exportado significa validado en esta carpeta, no recibido por el otro dispositivo.</p></details>
+<div id="sync-conflicts"></div><div id="sync-resolve-dialog" role="alertdialog" aria-label="Resolver conflicto" hidden><p>Confirma qué versión conservar como actual. El historial cifrado conserva las revisiones; un borrado elimina la entrada de la vista actual.</p><pre id="sync-resolve-preview"></pre><button id="sync-resolve-confirm">Conservar esta versión</button><button id="sync-resolve-cancel">Cancelar</button></div></div>
+<div class="version-footer">v.1.0 public - comp. <span class="installed-build">No disponible</span></div></section>
+<section id="help" hidden><header class="topbar"><button type="button" class="backicon" id="help-back" aria-label="Volver desde ayuda">←</button><h1>GUÍA DE TELECONTROL</h1></header>
+<div class="help-content">
+<h2>TELECONTROL v2.1 · Guía ilustrada</h2>
+<p>Consulta centros de transformación, localízalos y registra notas de trabajo. Los datos del catálogo se guardan en tu dispositivo.</p>
+<h3>1. Buscar un CT</h3>
+<figure><div class="help-visual"><svg viewBox="0 0 80 80"><circle cx="34" cy="34" r="23"/><path d="M51 51 74 74"/></svg><span>BUSCAR MATRÍCULA<br>28CM36</span></div><figcaption>En Inicio, toca la lupa. Escribe la matrícula o usa el micrófono del buscador; revisa el texto y pulsa BUSCAR.</figcaption></figure>
+<h3>2. Consultar datos y mapa</h3>
+<figure><div class="help-visual"><svg viewBox="0 0 80 80"><path d="M40 76S12 46 12 30a28 28 0 0 1 56 0C68 46 40 76 40 76Z"/><circle cx="40" cy="30" r="10"/></svg><span>FICHA DEL CT<br>ABRIR EN GOOGLE MAPS</span></div><figcaption>Comprueba los campos de la ficha. El botón de Maps abre las coordenadas del CT cuando estén disponibles.</figcaption></figure>
+<h3>3. Crear notas del CT</h3>
+<figure><div class="help-visual"><svg viewBox="0 0 80 80"><rect x="13" y="9" width="54" height="62" rx="8"/><path d="M25 24h30M25 38h30M25 52h22"/></svg><span>NOTAS DEL CT<br>＋ → ESCRIBIR → 💾</span></div><figcaption>Desde la ficha, abre Notas. Pulsa +, escribe o dicta una observación y toca el disquete para guardar. Puedes editar o eliminar las entradas.</figcaption></figure>
+<h3>4. Diario de trabajo</h3>
+<figure><div class="help-visual"><svg viewBox="0 0 80 80"><rect x="14" y="8" width="52" height="64" rx="6"/><path d="M25 23h29M25 35h29M25 47h29M25 59h20"/></svg><span>DIARIO<br>BUSCAR · FILTRAR · EDITAR</span></div><figcaption>Abre Diario desde Inicio. No requiere matrícula. Busca anotaciones por texto o CT y consulta el historial por fechas.</figcaption></figure>
+<h3>5. Configurar y proteger datos</h3>
+<figure><div class="help-visual"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="24"/><circle cx="40" cy="40" r="9"/><path d="M40 3v12M40 65v12M3 40h12M65 40h12"/></svg><span>CONFIGURAR<br>JSON · CAMPOS · TEMAS</span></div><figcaption>En Base de datos importa el JSON privado que te facilite el responsable. En Campos selecciona información adicional; en Apariencia cambia el tema; en Copias exporta notas y diario.</figcaption></figure>
+<h3>6. Comunicar errores y sugerencias</h3>
+<figure><div class="help-visual"><svg viewBox="0 0 80 80"><path d="M8 12h64v43H32L12 72V55H8z"/><path d="M23 28h34M23 40h24"/></svg><span>SUGERENCIAS<br>ERROR · SUGERENCIA · COMENTARIO</span></div><figcaption>Introduce nombre, correo y descripción. La aplicación abrirá tu cliente de correo con un asunto clasificado; revisa y confirma el envío.</figcaption></figure>
+<p><strong>Privacidad:</strong> el catálogo no está incluido en la APK y no se envía en sugerencias. Notas y diario se guardan localmente; las copias pueden contener datos sensibles. No las compartas fuera de medios autorizados. Google Maps y el reconocimiento de voz pueden requerir conexión.</p>
+</div><div class="version-footer">v.1.0 public - comp. <span class="installed-build">No disponible</span></div></section>
+<section id="feedback" hidden aria-label="Enviar sugerencias"><header class="topbar"><button type="button" class="backicon" id="feedback-back" aria-label="Volver">←</button><h1>SUGERENCIAS</h1><span class="backspace"></span></header>
+<p>Ayúdanos a mejorar TELECONTROL. El mensaje se preparará en tu aplicación de correo para que puedas revisarlo y enviarlo.</p>
+<form id="feedback-form" class="feedback-form">
+<label for="feedback-name">NOMBRE Y APELLIDOS</label><input id="feedback-name" required maxlength="120" autocomplete="name">
+<label for="feedback-email">EMAIL DE CONTACTO</label><input id="feedback-email" required type="email" maxlength="180" autocomplete="email">
+<label for="feedback-type">TIPO DE MENSAJE</label><select id="feedback-type" required><option value="ERROR">Error</option><option value="SUGERENCIA">Sugerencia</option><option value="COMENTARIO">Comentario</option></select>
+<label for="feedback-description">DESCRIPCIÓN</label><textarea id="feedback-description" required maxlength="3000" rows="7" placeholder="Explica el error, la sugerencia o el comentario"></textarea>
+<button type="submit" class="action-small feedback-send"><span class="ui-icon" aria-hidden="true">➤</span> PREPARAR CORREO</button>
+<p id="feedback-status" role="status" aria-live="polite"></p></form><div class="version-footer">v.1.0 public - comp. <span class="installed-build">No disponible</span></div></section>
+<section id="work" hidden><header class="topbar"><button id="work-back" aria-label="Volver">←</button><h1 id="work-title">NOTAS DEL CT</h1></header><div id="journal-search" hidden><label for="journal-query">⌕ BUSCAR EN TODO EL DIARIO</label><input id="journal-query" type="search" placeholder="Texto o matrícula" autocomplete="off"><p id="journal-results" role="status"></p></div><div class="work-editor-heading"><button id="new-work" class="action-small" aria-label="Nueva nota">＋</button><label id="observation-label" for="ct-notes">Observación</label></div><textarea id="entry-text" maxlength="20000" hidden></textarea><textarea id="ct-notes" maxlength="20000"></textarea><button id="save-work" class="action-small">Guardar</button><button id="save-conflict-draft" hidden>Guardar borrador como versión en conflicto</button><p id="work-sync-status" class="sync-subtle" role="status"></p><p id="work-status" role="status"></p><div id="work-list"></div><div id="delete-dialog" role="alertdialog" aria-label="Confirmar eliminación" hidden><p>¿Eliminar esta entrada definitivamente?</p><button id="delete-confirm">Eliminar</button><button id="delete-cancel">Cancelar</button></div><div id="discard-dialog" role="alertdialog" aria-label="Descartar borrador" hidden><p>Tienes comentarios sin guardar. ¿Quieres salir sin guardar?</p><button id="discard-confirm">Salir sin guardar</button><button id="discard-cancel">Continuar editando</button></div></section>
+<section id="reminders" hidden><header class="topbar"><button id="reminder-back" aria-label="Volver">←</button><h1>AVISOS</h1></header><label for="reminder-text">Descripción</label><textarea id="reminder-text" maxlength="2000"></textarea><label for="reminder-date">Fecha</label><input id="reminder-date" type="date"><label for="reminder-time">Hora</label><input id="reminder-time" type="time"><label for="reminder-ct">CT opcional</label><input id="reminder-ct" maxlength="80"><label><input id="reminder-completed" type="checkbox">Completado</label><button id="reminder-save">Guardar aviso</button><button id="reminder-permissions">Permisos y ajustes Android</button><p id="reminder-status" role="status"></p><div id="reminder-list"></div><div id="reminder-delete-dialog" role="alertdialog" aria-label="Eliminar aviso" hidden><p>¿Eliminar y cancelar este aviso?</p><button id="reminder-delete-confirm">Eliminar</button><button id="reminder-delete-cancel">Cancelar</button></div></section>
+<section id="weekly" hidden aria-label="Gestión de trabajos">
+<header class="topbar"><button id="weekly-back" class="backicon" aria-label="Volver desde trabajos semanales">←</button><h1>GESTIÓN DE TRABAJOS</h1></header>
+<label for="work-category">Categoría</label><select id="work-category"><option value="weekly">TRABAJOS SEMANALES</option><option value="routers">CAMPAÑA ROUTERS</option><option value="journal">DIARIO DE TRABAJO</option></select><div id="import-report" hidden><h2>Informe de importación</h2><p id="weekly-import-summary" role="status"></p><button id="import-report-close">Volver a la lista</button></div>
+<button id="open-journal" hidden aria-label="Diario de trabajo"></button><p id="weekly-status" role="status" aria-live="polite"></p>
+<div id="weekly-checklist">
+<div class="weekly-heading"><div><h2 id="weekly-period-title"></h2><p id="weekly-home-summary"></p><progress id="weekly-progress" value="0" max="1" aria-label="Progreso de trabajos de la semana"></progress></div><button id="weekly-weeks" class="action-small" aria-label="Buscar semanas" title="Buscar semanas"></button></div>
+<div id="weekly-weeks-panel" hidden><label>Semana<select id="weekly-period"></select></label></div>
+<div id="weekly-filters-panel" class="weekly-tools" hidden><label>Buscar matrícula, ACT o descripción<input id="weekly-query" type="search" maxlength="200"></label><label>Estado<select id="weekly-state-filter"><option value="all">Todos</option><option value="not_started">SIN EMPEZAR</option><option value="in_progress">PENDIENTE DE ACABAR</option><option value="completed">REALIZADO</option></select></label><label>Orden<select id="weekly-order"><option value="pending">Pendientes primero</option><option value="done">Realizados primero</option></select></label></div>
+<p>Toca la tarjeta para consultar la ficha y el indicador derecho para cambiar su estado.</p><div id="weekly-list"></div>
+<nav class="weekly-bottom" aria-label="Acciones de trabajos semanales"><button id="weekly-manual" class="action-small" aria-label="Añadir" title="Añadir"></button><button id="weekly-scan" class="action-small" aria-label="Capturar Excel" title="Capturar Excel"></button><button id="weekly-import-excel" class="action-small" aria-label="IMPORTAR EXCEL" title="Importar Excel"></button><button id="weekly-filter" class="action-small" aria-label="Filtrar" title="Filtrar"></button><button id="weekly-more" class="action-small" aria-label="Más opciones" title="Más opciones"></button></nav>
+<div id="weekly-more-panel" hidden><button id="show-import-report" class="action-small">Informe de importación</button><button id="resume-review" class="action-small">Revisar importación pendiente</button><button id="weekly-txt" class="action-small">EXPORTAR COPIA TXT</button></div>
+</div>
+<div id="weekly-state-dialog" role="dialog" aria-modal="true" aria-labelledby="weekly-state-title" hidden><div class="dialog"><h2 id="weekly-state-title">Estado del trabajo</h2><button class="action-small" data-weekly-state="not_started">SIN EMPEZAR</button><button class="action-small" data-weekly-state="in_progress">PENDIENTE DE ACABAR</button><button class="action-small" data-weekly-state="completed">REALIZADO</button><button id="weekly-state-cancel" class="action-small">Cancelar</button></div></div>
+<div id="weekly-detail" hidden><header><button type="button" id="weekly-detail-back" class="backicon" aria-label="Volver a la lista">←</button><h2 id="weekly-detail-title"></h2><h3 id="weekly-detail-code"></h3><button id="detail-state" class="action-small">Cambiar estado</button></header>
+<h3>INFORMACIÓN DEL TRABAJO</h3><p id="work-type"></p><dl><dt>Descripción:</dt><dd id="weekly-detail-description"></dd><dt>TERED:</dt><dd id="weekly-detail-tered"></dd><dt>Municipio:</dt><dd id="weekly-detail-municipality"></dd></dl><dl id="router-detail" hidden><dt>Código Base/Centro:</dt><dd id="router-base"></dd></dl>
+<h3>PLANIFICACIÓN</h3><p id="work-iso-planning"></p><dl><dt id="work-date-label">Fecha de ejecución:</dt><dd id="weekly-detail-date"></dd></dl>
+<section id="work-tracking"><h3>DOCUMENTACIÓN Y SEGUIMIENTO</h3><div id="work-extra-fields"></div><dl id="weekly-origin-block"><dt>Comentarios de origen:</dt><dd id="weekly-origin-comments"></dd></dl><dl id="router-origin-block" hidden><dt>Comentarios de origen:</dt><dd id="router-origin"></dd></dl></section>
+<h3>DATOS DEL CENTRO — JSON</h3><dl id="work-ct-json"><dt>NOMBRE BDI</dt><dd id="work-bdi">No disponible</dd><dt>IP LAN</dt><dd id="work-ip-lan">No disponible</dd></dl>
+<h3>OBSERVACIONES</h3><label for="work-technician-notes">Anotaciones del técnico (independientes del Excel)</label><textarea id="work-technician-notes" maxlength="4000"></textarea><button id="save-technician-notes" class="action-small">Guardar observaciones</button><p id="work-save-status" role="status" aria-live="polite"></p>
+<button id="edit-work-data" class="action-small">Editar datos</button><div id="work-edit-panel" hidden><label>Matrícula<input id="work-edit-matricula"></label><label>ACT<input id="work-edit-act"></label><label>Municipio<input id="work-edit-municipality"></label><label>Tipología<input id="work-edit-typology"></label><label>TERED<input id="work-edit-tered"></label><div id="work-edit-planning"><label>Semana<input id="work-edit-week" type="number" min="1" max="53"></label></div><label>Descripción<textarea id="work-edit-description" maxlength="4000"></textarea></label><label id="work-edit-date-container">Fecha<input id="work-edit-date" type="date"></label><button id="save-work-data">Guardar cambios y observaciones</button></div><button id="weekly-mango" class="action-small">SSH MANGO · CT</button><button id="weekly-maps" class="action-small">ABRIR EN GOOGLE MAPS</button><p id="weekly-map-status" role="status"></p></div>
+<div id="weekly-review" role="dialog" aria-modal="true" aria-label="Revisar importación" hidden><button type="button" id="weekly-review-back" class="backicon" aria-label="Volver a la lista">←</button><label id="weekly-reference-option"><input id="weekly-reference-2026" type="checkbox">Este es el Excel de referencia 2026: excluir semanas 1–34</label><h2>REVISAR IMPORTACIÓN</h2><p>La única referencia temporal obligatoria de los trabajos semanales es SEMANA. MUNICIPIO debe proceder de su propia cabecera. Revisa códigos, ceros iniciales, descripciones y fechas. La fecha de ejecución puede estar fuera de la semana planificada.</p><p id="weekly-review-count"></p><div><button id="review-prev">Anteriores</button><span id="review-page"></span><button id="review-next">Siguientes</button></div><div id="weekly-draft"></div><button id="weekly-confirm" class="action-small">CONFIRMAR Y GUARDAR</button><button id="weekly-review-cancel" class="action-small">Cancelar revisión</button></div>
+
+</section>
+<script src="catalog.js"></script>
+<script src="catalog-store.js"></script>
+<script src="app.js"></script>
+<script src="tcs-clients.js"></script>
+<script src="themes.js"></script>
+<script src="speech.js"></script>
+<script src="work-store.js"></script>
+<script src="journal-search.js"></script>
+<script src="work-ui.js"></script>
+<script src="backup.js"></script>
+<script src="icons.js"></script>
+<script src="reminders.js"></script>
+<script src="sync-ui.js"></script>
+<script src="weekly-core.js"></script>
+<script src="weekly-ui.js"></script>
+</body></html>
