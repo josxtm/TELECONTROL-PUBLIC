@@ -53,7 +53,16 @@ def check(root):
             problems.append((rel, "non-text content"))
             continue
         if p.name == "AndroidManifest.xml" and "android.permission.INTERNET" in s:
-            problems.append((rel, "network permission in offline app"))
+            # The sole network exception is the non-exported, isolated MangoSSH activity.
+            # No other manifest, service or dependency receives a privacy exemption.
+            permitted_ssh = (
+                rel == "app/src/main/AndroidManifest.xml"
+                and 'android:name="io.github.josxtm.mangossh.community.MainActivity"' in s
+                and 'android:exported="false"' in s
+                and 'android:process=":mangossh"' in s
+            )
+            if not permitted_ssh:
+                problems.append((rel, "network permission without isolated SSH component"))
         if CORPORATE.search(s) or NET.search(s) or KEY.search(s) or PASSWORD.search(s) or IP.search(s):
             problems.append((rel, "sensitive-pattern candidate"))
     return sorted(problems)
