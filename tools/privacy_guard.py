@@ -32,6 +32,9 @@ def check(root):
         # The guard itself necessarily contains literal detection patterns.
         if rel == "tools/privacy_guard.py":
             continue
+        # Git metadata configuration is not a source file but is safe to inspect.
+        if rel == ".gitignore":
+            continue
         if p.suffix.lower() not in READ_EXT or p.stat().st_size > 2_000_000:
             if p.suffix.lower() not in READ_EXT:
                 problems.append((rel, "unreviewed file type"))
