@@ -30,11 +30,17 @@ public final class OwnerGuiSmokeTest extends ActivityInstrumentationTestCase2<es
     public void testApprovedHomeAndMangoAccessExist() throws Exception {
         es.josxtm.telecontrol.MainActivity home = getActivity();
         getInstrumentation().waitForIdleSync();
-        WebView web = findWebView(home.getWindow().getDecorView());
+        final WebView[] current = {null};
+        final String[] currentUrl = {null};
+        getInstrumentation().runOnMainSync(() -> {
+            current[0] = findWebView(home.getWindow().getDecorView());
+            if (current[0] != null) currentUrl[0] = current[0].getUrl();
+        });
+        WebView web = current[0];
         assertNotNull("Original WebView launcher must be present", web);
-        assertNotNull("Original homepage URL must be loaded", web.getUrl());
-        assertTrue("Homepage must be served through the private local asset origin",
-            web.getUrl().startsWith("https://appassets.androidplatform.net/assets/"));
+        assertNotNull("Original homepage URL must be loaded", currentUrl[0]);
+        assertTrue("Homepage must be served through the local asset origin",
+            currentUrl[0].startsWith("https://appassets.androidplatform.net/assets/"));
         boolean ready = false;
         for (int i = 0; i < 12 && !ready; i++) {
             CountDownLatch done = new CountDownLatch(1);
