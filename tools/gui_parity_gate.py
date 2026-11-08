@@ -12,7 +12,9 @@ REQUIRED = {
         "id=\"home\"",
         "id=\"detail\"",
         "id=\"config\"",
-        "themes.css"
+        "themes.css",
+        'src="naturgy.png"',
+        'src="eiffage.png"'
     ],
     "app/src/main/assets/themes.css": [
         "html:root"
@@ -20,7 +22,16 @@ REQUIRED = {
     "app/src/main/assets/app.js": [
         "fieldNames"
     ],
-    "app/src/main/res/drawable/ic_mangossh.xml": []
+    "app/src/main/res/drawable/ic_mangossh.xml": [],
+    "app/src/main/java/es/josxtm/telecontrol/MainActivity.java": [
+        "WebViewAssetLoader", "CTMangoNative", "webView.loadUrl"
+    ],
+    "app/src/main/AndroidManifest.xml": [
+        'android:name="es.josxtm.telecontrol.MainActivity"',
+        'android:process=":mangossh"'
+    ],
+    "app/src/main/assets/naturgy.png": [],
+    "app/src/main/assets/eiffage.png": []
 }
 
 
