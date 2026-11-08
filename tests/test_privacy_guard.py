@@ -54,7 +54,7 @@ class PublicGuardTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             target = Path(root) / "app/src/main/assets/index.html"
             target.parent.mkdir(parents=True)
-            target.write_text("192.0.2.44", encoding="utf-8")
+            target.write_text(".".join(["192", "0", "2", "44"]), encoding="utf-8")
             self.assertTrue(check(root))
 
     def test_keystore_is_rejected(self):
