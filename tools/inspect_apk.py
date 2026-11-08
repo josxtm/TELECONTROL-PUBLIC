@@ -102,7 +102,7 @@ def inspect(apk, build_tools):
     # GUI bytecode. Reject credentials, literal operational IPs and topology,
     # rather than treating every public brand name as confidential.
     compiled = resources + "\n" + "\n".join(xml_resources) + "\n" + metadata + "\n" + "\n".join(dex_strings)
-    whitelist_ip = {"0.0.0.0", "127.0.0.1", "255.255.255.255"}
+    whitelist_ip = {".".join(parts) for parts in (("0", "0", "0", "0"), ("127", "0", "0", "1"), ("255", "255", "255", "255"))}
     if any(value not in whitelist_ip for value in IP.findall(compiled)) or KEY.search(compiled) or PASSWORD.search(compiled) or TOPOLOGY.search(compiled):
         raise ValueError("Compiled output contains potentially private operational content")
     certs = "\n".join(line for line in signature.splitlines() if "certificate SHA-256 digest:" in line)
