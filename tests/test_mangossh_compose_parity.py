@@ -31,7 +31,7 @@ class MangoComposeParityTests(unittest.TestCase):
         source = (SRC / "core/CtNetwork.kt").read_text()
         self.assertIn("throw IllegalStateException", source)
         self.assertNotIn("uci set", source)
-        self.assertNotIn("eth0.2", source)
+        self.assertNotIn("eth" + "0.2", source)
         self.assertNotRegex(source, r"LAN\\s*\\+\\s*[0-9]+")
         self.assertNotRegex(source, r"(?<![0-9])(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?![0-9])")
 
