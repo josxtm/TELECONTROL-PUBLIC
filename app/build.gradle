@@ -16,7 +16,7 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     packaging {
-        resources.excludes += ['META-INF/DEPENDENCIES', 'META-INF/versions/**/OSGI-INF/**']
+        resources.excludes += ['META-INF/DEPENDENCIES', 'META-INF/versions/**/OSGI-INF/**', 'DebugProbesKt.bin']
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
