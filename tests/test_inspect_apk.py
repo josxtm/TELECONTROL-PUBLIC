@@ -17,8 +17,9 @@ class ApkInspectionTest(unittest.TestCase):
             if "badging" in args:
                 package = "es.josxtm.telecontrol.community" + (".tablet" if flavor == "tablet" else "")
                 label = "tablet" if flavor == "tablet" else "public"
+                minor = "1" if flavor == "tablet" else "0"
                 return ("package: name='" + package + "' versionCode='" + version
-                        + "' versionName='v.1.0 " + label + " - comp. " + compilation + "'\n"
+                        + "' versionName='v.1." + minor + " " + label + " - comp. " + compilation + "'\n"
                         + "".join("uses-permission: name='" + p + "'\n" for p in permissions))
             if "xmltree" in args:
                 return "allowBackup(0x01010280)=(type 0x12)0x0\nio.github.josxtm.mangossh.community.MainActivity\n:mangossh"
@@ -36,9 +37,9 @@ class ApkInspectionTest(unittest.TestCase):
         self.assertIn("PASS APK", self.run_inspection())
 
     def test_tablet_identity_is_separate_and_checked(self):
-        self.assertIn("PASS APK", self.run_inspection(version="20003", flavor="tablet"))
+        self.assertIn("PASS APK", self.run_inspection(version="30003", flavor="tablet"))
         with self.assertRaises(ValueError):
-            self.run_inspection(version="10003", flavor="tablet")
+            self.run_inspection(version="20003", flavor="tablet")
 
     def test_assets_and_unknown_payloads_blocked(self):
         for name in ["assets/catalog.txt", "res/raw/catalog.xml", "unknown.bin"]:

@@ -70,12 +70,13 @@ def inspect(apk, build_tools, flavor="mobile"):
         raise ValueError("Unknown package flavor")
     expected_package = "es.josxtm.telecontrol.community" + (".tablet" if flavor == "tablet" else "")
     expected_label = "tablet" if flavor == "tablet" else "public"
+    expected_minor = "1" if flavor == "tablet" else "0"
     pattern = (
         r"package: name='" + re.escape(expected_package) +
         r"' versionCode='([0-9]+)' versionName='v\.1\.0 " + expected_label + r" - comp\. ([0-9]+)'"
     )
     version = re.search(pattern, badging)
-    offset = 20000 if flavor == "tablet" else 10000
+    offset = 30000 if flavor == "tablet" else 10000
     if not version or int(version.group(1)) != offset + int(version.group(2)):
         raise ValueError("Unexpected public application identity or compilation version")
     manifest = run("aapt", "dump", "xmltree", apk, "AndroidManifest.xml")
