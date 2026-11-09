@@ -26,6 +26,16 @@ EXPECTED_ELF_MACHINE = {
     "armeabi-v7a": 40, "arm64-v8a": 183, "x86": 3, "x86_64": 62,
 }
 MAX_NATIVE_BYTES = 32 * 1024 * 1024
+# Kotlin standard library built-in descriptors bundled by pinned dependencies.
+APPROVED_KOTLIN_BUILTINS = frozenset({
+    "kotlin/annotation/annotation.kotlin_builtins",
+    "kotlin/collections/collections.kotlin_builtins",
+    "kotlin/coroutines/coroutines.kotlin_builtins",
+    "kotlin/internal/internal.kotlin_builtins",
+    "kotlin/kotlin.kotlin_builtins",
+    "kotlin/ranges/ranges.kotlin_builtins",
+    "kotlin/reflect/reflect.kotlin_builtins",
+})
 
 
 def inspect(apk, build_tools):
@@ -81,6 +91,13 @@ def inspect(apk, build_tools):
             raise ValueError("Duplicated APK archive path")
         for name in archive.namelist():
             if name.endswith("/"):
+                continue
+            if name in APPROVED_KOTLIN_BUILTINS:
+                info = archive.getinfo(name)
+                if info.file_size < 1 or info.file_size > 256 * 1024:
+                    raise ValueError("Unexpected Kotlin builtin descriptor size")
+                # The exact file name and bounded size are verified. These are
+                # dependency metadata, not app content or stored CT records.
                 continue
             if re.fullmatch(r"META-INF/services/kotlinx\.coroutines(?:\.[A-Za-z0-9_]+)+", name):
                 # Kotlin coroutines ServiceLoader registrations are text metadata
