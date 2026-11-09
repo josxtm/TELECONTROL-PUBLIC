@@ -111,9 +111,27 @@ def inspect(apk, build_tools):
                 else:
                     raise ValueError("Unreviewed bundled asset")
                 continue
+            ui_image = bool(re.fullmatch(
+                r"res/(?:drawable|mipmap)(?:-[A-Za-z0-9_-]+)?/[A-Za-z0-9_.-]+\.(?:png|webp|jpe?g)",
+                name
+            ))
+            if ui_image:
+                info = archive.getinfo(name)
+                if info.file_size > 2 * 1024 * 1024 or info.file_size < 8:
+                    raise ValueError("Unreviewed Android framework image size")
+                image = archive.read(name)
+                suffix = name.rsplit(".", 1)[-1].lower()
+                valid = (
+                    (suffix == "png" and image.startswith(bytes.fromhex("89504e470d0a1a0a")))
+                    or (suffix == "webp" and image[:4] == b"RIFF" and image[8:12] == b"WEBP")
+                    or (suffix in {"jpg", "jpeg"} and image.startswith(bytes.fromhex("ffd8")))
+                )
+                if not valid:
+                    raise ValueError("Unreviewed Android framework image format")
             if not (re.fullmatch(r"classes\d*\.dex", name) or name in {"AndroidManifest.xml", "resources.arsc", "META-INF/com/android/build/gradle/app-metadata.properties"}
                     or re.fullmatch(r"res/[A-Za-z0-9_+/-]+\.xml", name)
                     or re.fullmatch(r"res/mipmap-(?:mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)(?:-v[0-9]+)?/ic_launcher\.png", name)
+                    or ui_image
                     or re.fullmatch(r"META-INF/[A-Za-z0-9_.-]+", name)):
                 safe_name = re.sub(r"[^A-Za-z0-9_./+-]", "?", name)[:160]
                 raise ValueError("Unreviewed packaged resource path: " + safe_name)
