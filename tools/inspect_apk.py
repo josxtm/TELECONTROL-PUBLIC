@@ -40,6 +40,28 @@ APPROVED_KOTLIN_BUILTINS = frozenset({
 })
 
 
+def find_dex_ipv4_owners(dex_payloads, build_tools, allowed_ips):
+    """Attribute rejected DEX string references to public class names, never IP values."""
+    owners = set()
+    for payload in dex_payloads:
+        with tempfile.NamedTemporaryFile(suffix=".dex") as dex_file:
+            dex_file.write(payload)
+            dex_file.flush()
+            dump = subprocess.check_output(
+                [str(Path(build_tools) / "dexdump"), "-d", dex_file.name],
+                text=True, stderr=subprocess.DEVNULL
+            )
+        current_class = None
+        for line in dump.splitlines():
+            match = re.search(r"Class descriptor\s*:\s*\x27([^\x27]+)\x27", line)
+            if match:
+                current_class = match.group(1)
+            elif current_class and ("const-string" in line or re.search(r"\bvalue\s*:", line)):
+                if any(ip not in allowed_ips for ip in IP.findall(line)):
+                    if re.fullmatch(r'L[A-Za-z0-9_/$;-]{1,180}', current_class):
+                        owners.add(current_class)
+    return sorted(owners)
+
 def inspect(apk, build_tools):
     apk = Path(apk)
     tools = Path(build_tools)
@@ -81,6 +103,7 @@ def inspect(apk, build_tools):
     if not re.search(r"allowBackup\([^\n]*=\(type 0x12\)0x0", manifest):
         raise ValueError("Automatic backup must be disabled")
     dex_strings = []
+    dex_payloads = []
     xml_resources = []
     metadata = ""
     with zipfile.ZipFile(apk) as archive:
@@ -207,6 +230,7 @@ def inspect(apk, build_tools):
                 metadata = archive.read(name).decode("utf-8")
             if re.fullmatch(r"classes\d*\.dex", name):
                 data = archive.read(name)
+                dex_payloads.append(data)
                 if not data.startswith(b"dex\n"):
                     raise ValueError("Invalid bytecode container")
                 count, table = struct.unpack_from("<II", data, 56)
@@ -246,6 +270,13 @@ def inspect(apk, build_tools):
                      if any(value not in whitelist_ip for value in IP.findall(payload))]
     if ip_categories:
         flagged.append("IPv4 literal (sources: " + ", ".join(ip_categories) + ")")
+    if "DEX constants" in ip_categories:
+        try:
+            owners = find_dex_ipv4_owners(dex_payloads, tools, whitelist_ip)
+            print("Unreviewed DEX IPv4 class origins (names only): "
+                  + ", ".join(owners[:16] or ["unattributed"]), flush=True)
+        except (OSError, subprocess.CalledProcessError, ValueError):
+            print("DEX IPv4 class attribution unavailable; remaining blocked", flush=True)
     # JSch's public SSH key *parser* embeds a PEM header marker as a
     # constant. A header alone is not a credential. Reject actual PEM key
     # material (header, substantial base64 body and matching footer) and tokens.
