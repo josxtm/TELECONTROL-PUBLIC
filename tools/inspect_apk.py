@@ -131,6 +131,17 @@ def inspect(apk, build_tools):
                     r"kotlinx\.coroutines(?:\.[A-Za-z0-9_$]+)+", line) for line in services):
                     raise ValueError("Unexpected coroutine service registration")
                 continue
+            if re.fullmatch(
+                r"org/bouncycastle/x509/CertPathReviewerMessages(?:_[a-z]{2})?\.properties", name
+            ):
+                # Public localization strings from the pinned Bouncy Castle jar.
+                info = archive.getinfo(name)
+                if info.file_size < 10 or info.file_size > 262144:
+                    raise ValueError("Unexpected reviewed Bouncy Castle properties size")
+                payload = archive.read(name)
+                if b"\x00" in payload:
+                    raise ValueError("Unexpected binary payload in Bouncy Castle properties")
+                continue
             if name.startswith("lib/"):
                 parts = name.split("/")
                 if len(parts) != 3 or parts[1] not in EXPECTED_ELF_MACHINE or parts[2] not in APPROVED_NATIVE_BASENAMES:
