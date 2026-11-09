@@ -109,7 +109,8 @@ def inspect(apk, build_tools):
                 entries = [line.strip() for line in archive.read(name).decode("utf-8").splitlines()
                            if line.strip() and not line.lstrip().startswith("#")]
                 allowed = {"org.bouncycastle.jce.provider.BouncyCastleProvider",
-                           "org.bouncycastle.jsse.provider.BouncyCastleJsseProvider"}
+                           "org.bouncycastle.jsse.provider.BouncyCastleJsseProvider",
+                           "org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider"}
                 if not entries or len(entries) != len(set(entries)) or not set(entries).issubset(allowed):
                     # Class names alone (never credentials or document bodies) identify
                     # an unexpected dependency registration for a narrow future review.
