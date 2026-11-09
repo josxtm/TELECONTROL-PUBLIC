@@ -66,7 +66,37 @@ class MangoViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         viewModelScope.launch(Dispatchers.IO) { dao.prune(System.currentTimeMillis() - 30L * 86400000) }
+        // Non-destructive upgrade from the legacy Java MangoSSH screen.
+        // Only the user-entered host, port and account are carried across.
+        // Passwords were not stored by that screen; existing host trust is
+        // NOT copied into a different trust store without re-verification.
+        viewModelScope.launch(Dispatchers.IO) { importLegacyPublicProfile() }
+
     }
+    private suspend fun importLegacyPublicProfile() {
+        val app = getApplication<Application>()
+        val marker = app.getSharedPreferences("mangossh-compose-import", android.content.Context.MODE_PRIVATE)
+        if (marker.getBoolean("legacy-profile-v1", false)) return
+        val legacy = app.getSharedPreferences("public-profile", android.content.Context.MODE_PRIVATE)
+        val host = legacy.getString("host", "").orEmpty().trim()
+        val user = legacy.getString("user", "").orEmpty().trim()
+        val port = legacy.getString("port", "22").orEmpty().toIntOrNull() ?: return
+        if (host.isBlank() || user.isBlank()) return
+        val id = java.util.UUID.nameUUIDFromBytes(
+            ("mangossh-public-import|" + host + "|" + user + "|" + port).toByteArray(Charsets.UTF_8)
+        ).toString()
+        val profile = Profile(id = id, name = "Conexión recuperada", host = host,
+            port = port, user = user, auth = AuthType.PASSWORD)
+        if (runCatching { profile.validate() }.isFailure) return
+        runCatching {
+            val existing = dao.profiles().first()
+            if (existing.none { it.host == host && it.user == user && it.port == port }) {
+                dao.save(ProfileRow.from(profile))
+            }
+            check(marker.edit().putBoolean("legacy-profile-v1", true).commit())
+        }.onFailure { message("No se pudo importar el perfil anterior; sigue conservado.") }
+    }
+
     fun select(profile: Profile) { mutable.update { it.copy(selected = profile) } }
     fun message(text: String) { mutable.update { it.copy(message = text) } }
     fun save(profile: Profile) = viewModelScope.launch {

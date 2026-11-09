@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.josxtm.mangossh.core.CtPlanning
+import io.github.josxtm.mangossh.core.mangoDefaultHost
 
 /** Reusable CT workflow for future AutoControL SNIFFER integration. */
 @Composable

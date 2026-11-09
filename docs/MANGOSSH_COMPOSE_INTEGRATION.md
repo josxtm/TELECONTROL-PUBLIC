@@ -20,6 +20,10 @@ El cliente SSH incorpora verificación explícita de identidad de servidor,
 perfiles cifrados en el almacén privado de Android y consola interactiva.
 Las clases públicas Java antiguas **se conservan** temporalmente para evitar
 eliminar preferencias o claves guardadas; no se borran datos al migrar la UI.
+El nuevo ViewModel importa una sola vez el host, cuenta y puerto introducidos
+en la interfaz anterior, después de validarlos y evitando duplicados. No mueve
+contraseñas ni acepta automáticamente antiguas huellas de servidor.
+Los datos de la pantalla antigua se mantienen intactos, incluso ante fallo.
 
 ## Seguridad y limitaciones de esta etapa
 
