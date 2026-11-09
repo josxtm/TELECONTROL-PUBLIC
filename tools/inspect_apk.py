@@ -6,9 +6,9 @@ from pathlib import Path
 import re
 import subprocess
 import struct
-import tempfile
 import zipfile
 from privacy_guard import check, APPROVED_UI_ASSETS, IP, KEY, PASSWORD, TOPOLOGY
+from dex_ip_audit import literal_owners
 
 OCR_SHA256 = {
     "assets/ocr/eng.traineddata": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
@@ -39,28 +39,6 @@ APPROVED_KOTLIN_BUILTINS = frozenset({
     "kotlin/reflect/reflect.kotlin_builtins",
 })
 
-
-def find_dex_ipv4_owners(dex_payloads, build_tools, allowed_ips):
-    """Attribute rejected DEX string references to public class names, never IP values."""
-    owners = set()
-    for payload in dex_payloads:
-        with tempfile.NamedTemporaryFile(suffix=".dex") as dex_file:
-            dex_file.write(payload)
-            dex_file.flush()
-            dump = subprocess.check_output(
-                [str(Path(build_tools) / "dexdump"), "-d", dex_file.name],
-                text=True, stderr=subprocess.DEVNULL
-            )
-        current_class = None
-        for line in dump.splitlines():
-            match = re.search(r"Class descriptor\s*:\s*\x27([^\x27]+)\x27", line)
-            if match:
-                current_class = match.group(1)
-            elif current_class and ("const-string" in line or re.search(r"\bvalue\s*:", line)):
-                if any(ip not in allowed_ips for ip in IP.findall(line)):
-                    if re.fullmatch(r'L[A-Za-z0-9_/$;-]{1,180}', current_class):
-                        owners.add(current_class)
-    return sorted(owners)
 
 def inspect(apk, build_tools):
     apk = Path(apk)
@@ -268,15 +246,40 @@ def inspect(apk, build_tools):
     }
     ip_categories = [label for label, payload in ip_sources.items()
                      if any(value not in whitelist_ip for value in IP.findall(payload))]
+    if "DEX constants" in ip_categories:
+        # Application-owned literals remain blocked. Only literals provably
+        # referenced solely by pinned public dependency packages can pass.
+        approved_dependency_packages = (
+            "Lorg/bouncycastle/", "Lcom/jcraft/jsch/", "Landroidx/",
+            "Lcom/google/", "Lorg/apache/", "Lkotlin/", "Lkotlinx/",
+            "Lokhttp3/", "Lokio/", "Lcz/adaptech/",
+        )
+        blocked_owners = set()
+        trusted_count = 0
+        for dex_data in dex_payloads:
+            references = literal_owners(
+                dex_data, lambda value: any(
+                    ip not in whitelist_ip for ip in IP.findall(value))
+            )
+            for owners in references.values():
+                if owners and all(owner.startswith(approved_dependency_packages)
+                                  for owner in owners):
+                    trusted_count += 1
+                else:
+                    blocked_owners.update(owners or {"unattributed"})
+        if not blocked_owners:
+            ip_categories.remove("DEX constants")
+            if trusted_count:
+                print("PASS DEX IPv4: referenced only by pinned public libraries "
+                      "(values withheld)", flush=True)
+        else:
+            safe_owners = sorted(owner for owner in blocked_owners
+                                 if owner == "unattributed" or re.fullmatch(
+                                     r"L[A-Za-z0-9_/$;-]{1,180}", owner))
+            print("Blocked DEX IPv4 class origins (names only): "
+                  + ", ".join(safe_owners[:16] or ["invalid-owner"]), flush=True)
     if ip_categories:
         flagged.append("IPv4 literal (sources: " + ", ".join(ip_categories) + ")")
-    if "DEX constants" in ip_categories:
-        try:
-            owners = find_dex_ipv4_owners(dex_payloads, tools, whitelist_ip)
-            print("Unreviewed DEX IPv4 class origins (names only): "
-                  + ", ".join(owners[:16] or ["unattributed"]), flush=True)
-        except (OSError, subprocess.CalledProcessError, ValueError):
-            print("DEX IPv4 class attribution unavailable; remaining blocked", flush=True)
     # JSch's public SSH key *parser* embeds a PEM header marker as a
     # constant. A header alone is not a credential. Reject actual PEM key
     # material (header, substantial base64 body and matching footer) and tokens.
