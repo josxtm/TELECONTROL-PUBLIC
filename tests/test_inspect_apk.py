@@ -136,7 +136,7 @@ class ApkInspectionTest(unittest.TestCase):
     def test_realistic_embedded_pem_body_is_blocked(self):
         header = "-----" + "BEGIN PRIVATE KEY" + "-----"
         footer = "-----" + "END PRIVATE KEY" + "-----"
-        fake_key = header + "\\n" + ("A" * 160) + "\\n" + footer
+        fake_key = header + "\n" + ("A" * 160) + "\n" + footer
         with self.assertRaisesRegex(ValueError, "embedded credential material"):
             self.run_inspection(resource=fake_key)
 
