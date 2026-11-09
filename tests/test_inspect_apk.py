@@ -109,13 +109,13 @@ class ApkInspectionTest(unittest.TestCase):
     def test_pinned_security_provider_is_allowed(self):
         self.assertIn("PASS APK", self.run_inspection(
             extra="META-INF/services/java.security.Provider",
-            extra_data="org.bouncycastle.jce.provider.BouncyCastleProvider\\n"))
+            extra_data="org.bouncycastle.jce.provider.BouncyCastleProvider\n"))
 
     def test_unreviewed_security_provider_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "security provider registration"):
             self.run_inspection(
                 extra="META-INF/services/java.security.Provider",
-                extra_data="com.untrusted.CustomProvider\\n")
+                extra_data="com.untrusted.CustomProvider\n")
 
     def test_bounded_coroutine_service_descriptor_allowed(self):
         self.assertIn("PASS APK", self.run_inspection(
