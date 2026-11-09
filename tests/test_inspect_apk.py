@@ -122,6 +122,18 @@ class ApkInspectionTest(unittest.TestCase):
                 extra="META-INF/services/java.security.Provider",
                 extra_data="com.untrusted.CustomProvider\n")
 
+    def test_exact_public_bouncy_castle_properties_allowed(self):
+        payload = b"review.summary=synthetic test only\n"
+        self.assertIn("PASS APK", self.run_inspection(
+            extra="org/bouncycastle/x509/CertPathReviewerMessages.properties",
+            extra_data=payload))
+
+    def test_unrecognized_provider_properties_path_rejected(self):
+        with self.assertRaises(ValueError):
+            self.run_inspection(
+                extra="org/bouncycastle/unreviewed/secret.properties",
+                extra_data=b"test=unreviewed\n")
+
     def test_bounded_coroutine_service_descriptor_allowed(self):
         self.assertIn("PASS APK", self.run_inspection(
             extra="META-INF/services/kotlinx.coroutines.CoroutineExceptionHandler",
