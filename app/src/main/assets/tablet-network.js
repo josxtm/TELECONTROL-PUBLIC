@@ -22,9 +22,9 @@
     b.addEventListener('click',()=>{
       if(id==='network') return openNetwork();
       if(id==='detail' && !$('fields')?.children.length) return showNotice('Busca una matrícula antes de consultar la ficha.');
-      if(id==='work') { $('open-journal')?.click();return; }
-      if(id==='weekly') {$('open-weekly')?.click();return;}
-      if(id==='config') {$('home-config')?.click();return;}
+      if(id==='work') { $('tablet-network').hidden=true;$('open-journal')?.click();return; }
+      if(id==='weekly') {$('tablet-network').hidden=true;$('open-weekly')?.click();return;}
+      if(id==='config') {$('tablet-network').hidden=true;$('home-config')?.click();return;}
       if(id==='detail') {$('tablet-network').hidden=true;document.querySelectorAll('#home,#weekly,#work,#config,#help,#feedback,#reminders').forEach(x=>x.hidden=true);$('detail').hidden=false;return;}
       if(id==='home') { $('tablet-network').hidden=true;$('top-back')?.click(); if($('detail').hidden) {screens.forEach(s=>{const e=$(s);if(e)e.hidden=s!=='home';});}return;}
     });
