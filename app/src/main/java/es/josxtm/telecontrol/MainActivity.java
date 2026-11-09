@@ -107,7 +107,7 @@ public final class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 // Only the tablet flavor opts in; the approved mobile DOM/CSS remains untouched.
-                if ("tablet".equals(BuildConfig.FLAVOR) && url != null
+                if ("tablet".equals(es.josxtm.telecontrol.community.BuildConfig.FLAVOR) && url != null
                         && url.equals("https://" + ORIGIN + "/assets/index.html")) {
                     view.evaluateJavascript(
                         "(function(){if(document.getElementById('tablet-industrial-css'))return;"
