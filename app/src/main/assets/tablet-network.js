@@ -36,7 +36,7 @@
   function showNotice(message){const el=$('tablet-status');if(el)el.textContent=message;}
   function statusText(x){return x==='ok'?'CONECTADO':x==='failed'?'SIN RESPUESTA':'NO COMPROBADO';}
   function node(label,kind,status,caption){
-    return '<div class="net-node '+kind+'">'+sketch(kind)+'<strong>'+escape(label)+'</strong><small>'+escape(caption)+'</small><b style="color:'+(status==='ok'?'#168f39':'#c31129')+'">'+escape(statusText(status))+'</b></div>';
+    return '<div class="net-node '+kind+' status-'+status+'">'+sketch(kind)+'<strong>'+escape(label)+'</strong><small>'+escape(caption)+'</small><b style="color:'+(status==='ok'?'#168f39':'#c31129')+'">'+escape(statusText(status))+'</b></div>';
   }
   function render(){
     const valid=state.mango==='ok'&&state.tablet==='ok';
@@ -44,12 +44,12 @@
       +(valid?'MANGO PREPARADO PARA SSH.':'MANGO NO VERIFICADO: NO SE ATRIBUYEN FALLOS A EQUIPOS SIN MEDICIÓN.')+'</div>';
     html+='<div class="net-layout">'
       +node('TABLET / MÓVIL','tablet',state.tablet,'DISPOSITIVO LOCAL')
-      +'<div>'+node('MANGO','mango',state.mango,'SSH: '+(state.mango==='ok'?'VERIFICADO': 'NO VERIFICADO'))+'<div class="net-link '+(valid?'ok':'')+'" aria-hidden="true"></div></div>'
+      +'<div>'+node('MANGO','mango',state.mango,'SSH: '+(state.mango==='ok'?'VERIFICADO': 'NO VERIFICADO'))+'</div>'
       +'<div>'+node('ROUTER DEL CT','router',state.router,'ENLACE LOCAL')+'</div>'
       +'<div class="net-equipment" aria-label="Equipos ordenados de arriba abajo">';
     for(const eq of state.equipment){
       const good=valid&&eq.status==='ok',failed=eq.status==='failed';
-      html+='<div class="net-endpoints"><div class="net-branch '+(good?'ok':'')+'" aria-hidden="true"></div>'
+      html+='<div class="net-endpoints">'
         +'<article class="'+(good?'ok':'pending')+'"><span>'+escape(eq.name)+'</span><code>'
         +escape(eq.ip||'IP NO IMPORTADA')+'</code><small>'
         +escape(good?(typeof eq.rtt==='number'?eq.rtt+' MS':'CONECTADO'):failed?'SIN RESPUESTA':'NO COMPROBADO')
@@ -57,10 +57,71 @@
     }
     html+='</div></div><p class="net-actions">El gráfico muestra únicamente resultados verificados. Verde = éxito confirmado; rojo = fallo confirmado; sin verificar = pendiente. Los iconos en movimiento son una representación visual, no transferencias de archivos.</p>';
     panel.innerHTML=html;
+    requestAnimationFrame(drawLinks);
   }
+  // Draw connections on top of the actual responsive layout rather than hard-coded
+  // lines. Every animation follows precisely the measured SVG path.
+  function drawLinks(){
+    if(panel.hidden)return;
+    const board=panel.querySelector('.net-layout');
+    if(!board)return;
+    const old=board.querySelector('.net-wires');
+    if(old)old.remove();
+    const frame=board.getBoundingClientRect();
+    const point=(el,edge)=>{
+      const r=el.getBoundingClientRect();
+      return {x:(edge==='right'?r.right:r.left)-frame.left,y:r.top+r.height/2-frame.top};
+    };
+    const tab=board.querySelector('.net-node.tablet');
+    const mango=board.querySelector('.net-node.mango');
+    const router=board.querySelector('.net-node.router');
+    const endings=[...board.querySelectorAll('.net-equipment article')];
+    if(!tab||!mango||!router||endings.length!==6)return;
+    const NS='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(NS,'svg');
+    svg.setAttribute('class','net-wires');svg.setAttribute('viewBox',`0 0 ${frame.width} ${frame.height}`);
+    svg.setAttribute('aria-hidden','true');
+    function wire(a,b,ok,curved){
+      const d=curved?
+        `M ${a.x} ${a.y} C ${a.x+50} ${a.y}, ${b.x-50} ${b.y}, ${b.x} ${b.y}`:
+        `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+      const path=document.createElementNS(NS,'path');
+      path.setAttribute('d',d);path.setAttribute('fill','none');
+      path.setAttribute('stroke',ok?'#12a741':'#c81028');
+      path.setAttribute('stroke-width','4.5');path.setAttribute('stroke-linecap','round');
+      svg.appendChild(path);
+      if(ok&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches&&!document.hidden){
+        const g=document.createElementNS(NS,'g');
+        const paper=document.createElementNS(NS,'rect');
+        paper.setAttribute('x','-7');paper.setAttribute('y','-9');paper.setAttribute('width','14');
+        paper.setAttribute('height','18');paper.setAttribute('rx','2');
+        paper.setAttribute('stroke','#147d34');paper.setAttribute('stroke-width','1.4');
+        paper.setAttribute('fill','#d9ffe3');g.appendChild(paper);
+        for(const y of [-3,2,6]){
+          const line=document.createElementNS(NS,'path');
+          line.setAttribute('d',`M -4 ${y} L 4 ${y}`);
+          line.setAttribute('stroke','#147d34');line.setAttribute('stroke-width','1.2');g.appendChild(line);
+        }
+        const motion=document.createElementNS(NS,'animateMotion');
+        motion.setAttribute('path',d);motion.setAttribute('dur','2.8s');
+        motion.setAttribute('repeatCount','indefinite');g.appendChild(motion);
+        svg.appendChild(g);
+      }
+    }
+    wire(point(tab,'right'),point(mango,'left'),state.tablet==='ok'&&state.mango==='ok',false);
+    wire(point(mango,'right'),point(router,'left'),state.mango==='ok'&&state.router==='ok',false);
+    for(let i=0;i<6;i++){
+      const good=state.tablet==='ok'&&state.mango==='ok'&&state.router==='ok'&&state.equipment[i].status==='ok';
+      wire(point(router,'right'),point(endings[i],'left'),good,true);
+    }
+    board.prepend(svg);
+  }
+  window.addEventListener('resize',()=>{if(!panel.hidden)requestAnimationFrame(drawLinks)});
   function openNetwork(){
+    if(window.CTWorkUI&&typeof window.CTWorkUI.canLeave==='function'&&!window.CTWorkUI.canLeave())return;
+    if(window.CTWeeklyUI&&typeof window.CTWeeklyUI.canLeave==='function'&&!window.CTWeeklyUI.canLeave())return;
     for(const id of screens){if($(id))$(id).hidden=true;}
-    panel.hidden=false;render();window.scrollTo({top:0,behavior:'instant'});
+    panel.hidden=false;render();window.scrollTo(0,0);
   }
   // Authorized callers can provide measured values, not network targets to probe.
   // Avoid invented measurements and do not persist user-provided values.
@@ -92,5 +153,8 @@
   });
   observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden']});
   render();
-  document.addEventListener('visibilitychange',()=>{document.body.classList.toggle('tablet-paused',document.hidden)});
+  document.addEventListener('visibilitychange',()=>{
+    document.body.classList.toggle('tablet-paused',document.hidden);
+    if(!panel.hidden)requestAnimationFrame(drawLinks);
+  });
 })();

@@ -136,3 +136,15 @@ body.tablet-industrial #tablet-network[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){
   body.tablet-industrial *,body.tablet-industrial *::before,body.tablet-industrial *::after{animation:none!important;transition:none!important}
 }
+
+/* Responsive SVG connection fan-out: actual measured node centers. */
+body.tablet-industrial .net-layout{position:relative;isolation:isolate}
+body.tablet-industrial .net-layout>.net-node,
+body.tablet-industrial .net-layout>.net-equipment,
+body.tablet-industrial .net-layout>div:not(.net-wires){position:relative;z-index:2}
+body.tablet-industrial .net-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+body.tablet-industrial .net-endpoints{display:block}
+body.tablet-industrial .net-node.mango{border:3px solid #c81028;border-radius:16px;padding:8px 0;background:#fff8f8}
+body.tablet-industrial .net-node.mango.status-ok{border-color:#17a447;background:#f2fff5}
+body.tablet-industrial .net-node.mango svg{width:min(100%,90px)}
+body.tablet-industrial .net-branch,body.tablet-industrial .net-link{display:none!important}
