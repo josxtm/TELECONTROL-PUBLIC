@@ -18,8 +18,8 @@ class ApkInspectionTest(unittest.TestCase):
                 package = "es.josxtm.telecontrol.community" + (".tablet" if flavor == "tablet" else "")
                 label = "tablet" if flavor == "tablet" else "public"
                 return ("package: name='" + package + "' versionCode='" + version
-                        + "' versionName='v.1.0 " + label + " - comp. " + compilation + "'\\n"
-                        + "".join("uses-permission: name='" + p + "'\\n" for p in permissions))
+                        + "' versionName='v.1.0 " + label + " - comp. " + compilation + "'\n"
+                        + "".join("uses-permission: name='" + p + "'\n" for p in permissions))
             if "xmltree" in args:
                 return "allowBackup(0x01010280)=(type 0x12)0x0\nio.github.josxtm.mangossh.community.MainActivity\n:mangossh"
             return resource
