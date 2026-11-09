@@ -23,6 +23,7 @@ android {
     packaging {
         resources.excludes += ['META-INF/DEPENDENCIES', 'META-INF/versions/**/OSGI-INF/**', 'DebugProbesKt.bin']
     }
+    lint { lintConfig file('lint.xml') }
     buildFeatures {
         compose true
         buildConfig true

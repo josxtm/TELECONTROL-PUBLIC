@@ -23,6 +23,7 @@
         <activity
             android:name="io.github.josxtm.mangossh.MainActivity"
             android:exported="false"
+            android:enabled="@bool/mangossh_compose_enabled"
             android:process=":mangossh"
             android:taskAffinity="es.josxtm.telecontrol.community.mangossh"
             android:launchMode="singleTask"

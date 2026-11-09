@@ -316,7 +316,7 @@ object CtCatalogStreamParser {
                             val child = value(if (isId(originalName)) originalName else "", depth + 1)
                             if (name in fieldContainers) {
                                 // Embedded {campos:{IP\u0020LAN:..., ...}}.
-                                for ((k, v) in child) if (k in recognized) fields.putIfAbsent(k, v)
+                                for ((k, v) in child) if (k in recognized && k !in fields) fields[k] = v
                             } else if (name in recognized) {
                                 // Wrapped scalar, e.g. "MATRÍCULA":{"valor":"28LABX"}.
                                 val wrapped = descriptorValues.firstNotNullOfOrNull {

@@ -17,7 +17,16 @@
 - Logotipos originales restaurados y auditados byte a byte. Derechos de las marcas pertenecen a sus titulares; su utilización debe ajustarse a los permisos aplicables.
 - Reglas privadas de red, sustituidas temporalmente por un adaptador neutro.
 - Migración probada de datos guardados por otras variantes de la aplicación.
-- Diseño completo original de la pantalla MangoSSH incrustada.
+- Pruebas visuales del diseño Compose original de MangoSSH, ahora incorporado en PR #7.
 - Verificación visual real en móvil y tablet y firma estable.
 
 **No afirmar equivalencia completa antes de superar estas pendientes.** Los repositorios privados permanecen intactos.
+
+## PR #7 — Recuperación del diseño original MangoSSH
+
+- Integradas las pantallas de conexión, terminal, diagnóstico, historial y configuración de Compose, con temas claro/oscuro y terminal nativa.
+- Enlace del icono original de TELECONTROL a la nueva Activity, aislada en tarea/proceso.
+- Cliente SSH original, huellas comprobadas y almacenamiento local cifrado, sin transferencia automática de claves confiables anteriores.
+- Migración conservadora de los parámetros de conexión de la interfaz pública anterior, sin borrar datos.
+- No se han trasladado configuraciones privadas de redes de campo; las operaciones que las requieren están bloqueadas hasta importar una configuración local válida.
+- Nueva dependencia de Kotlin/Compose, Room y DataStore; requiere pruebas de compilación Android y de navegación en emulador.
