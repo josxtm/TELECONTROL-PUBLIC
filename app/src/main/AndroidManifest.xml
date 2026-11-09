@@ -18,6 +18,16 @@
         android:label="TELECONTROL Público"
         android:theme="@style/AppTheme">
         <!-- Separate Activity, separate task and private process; not externally launchable. -->
+        <!-- The approved original MangoSSH Compose UI replaces the legacy screen.
+             The old non-exported activity remains available for non-destructive migration. -->
+        <activity
+            android:name="io.github.josxtm.mangossh.MainActivity"
+            android:exported="false"
+            android:process=":mangossh"
+            android:taskAffinity="es.josxtm.telecontrol.community.mangossh"
+            android:launchMode="singleTask"
+            android:label="MangoSSH"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar"/>
         <activity
             android:name="io.github.josxtm.mangossh.community.MainActivity"
             android:exported="false"
