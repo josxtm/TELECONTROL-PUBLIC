@@ -10,7 +10,7 @@
 
 ## Diferencias bloqueantes de aceptación
 
-- [ ] Logotipos oficiales originales: por ahora representados por textos neutros del mismo espacio geométrico. No publicar archivos gráficos corporativos sin revisar sus derechos de redistribución.
+- [x] Los dos gráficos originales de la portada se han restaurado por hash idéntico al origen privado y se han eliminado los sustitutos vectoriales. Sus archivos PNG solo contienen datos de imagen, sin metadatos adicionales. Las marcas siguen siendo propiedad de sus titulares; respetar las condiciones de uso y distribución.
 - [ ] Módulo de referencia de red: la tabla operativa interna fue excluida. Debe sustituirse por configuración importada únicamente en el dispositivo del técnico; actualmente se muestra un aviso sin datos.
 - [ ] Recuperación de los datos ya guardados por la primera edición pública: se ha conservado su código y almacenamiento, pero no existe migración reversible y probada hacia el modelo WebView de origen.
 - [ ] MangoSSH incrustado debe reproducir la GUI original del cliente independiente, no una pantalla simplificada.
