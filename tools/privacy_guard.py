@@ -44,7 +44,9 @@ APPROVED_UI_ASSETS = {
     "app/src/main/assets/weekly-core.js": "ccc0688eb46ffca8f0dcc61abc88e0ba082c16aa",
     "app/src/main/assets/weekly-ui.js": "6adca767c3b969ad9d270d8ee4f956b4bf07ed8d",
     "app/src/main/assets/work-store.js": "53439c911d6167b69d574b34851284e10ef6872a",
-    "app/src/main/assets/work-ui.js": "292d45a86d88bbb5cd9a3015111d635e23bcf0d7"
+    "app/src/main/assets/work-ui.js": "292d45a86d88bbb5cd9a3015111d635e23bcf0d7",
+    "app/src/main/assets/tablet-industrial.css": "3126f1311551e165456178713ea42c25de5d9eba",
+    "app/src/main/assets/tablet-network.js": "02f8df2674507add1e287546d6634fcaf575b29c"
 }
 TOPOLOGY = re.compile(r"LAN\\s*\\+\\s*(?:1|2|3|9|10|11|13|14)|\\b(?:GIC1|GIC2|GIC3|GIN1)\\b", re.I)
 

@@ -10,13 +10,15 @@ from inspect_apk import inspect, is_unreviewed_ipv4_literal
 
 
 class ApkInspectionTest(unittest.TestCase):
-    def run_inspection(self, extra=None, extra_data="synthetic", permissions=("android.permission.RECORD_AUDIO", "android.permission.INTERNET", "android.permission.CAMERA"), version="10003", compilation="3", resource="safe synthetic text"):
+    def run_inspection(self, extra=None, extra_data="synthetic", permissions=("android.permission.RECORD_AUDIO", "android.permission.INTERNET", "android.permission.CAMERA"), version="10003", compilation="3", resource="safe synthetic text", flavor="mobile"):
         def command(args, **kwargs):
             if "apksigner" in args[0]:
                 return "Signer #1 certificate SHA-256 digest: synthetic-test-only"
             if "badging" in args:
-                return ("package: name='es.josxtm.telecontrol.community' versionCode='" + version
-                        + "' versionName='v.1.0 public - comp. " + compilation + "'\n"
+                package = "es.josxtm.telecontrol.community" + (".tablet" if flavor == "tablet" else "")
+                label = "tablet" if flavor == "tablet" else "public"
+                return ("package: name='" + package + "' versionCode='" + version
+                        + "' versionName='v.1.0 " + label + " - comp. " + compilation + "'\n"
                         + "".join("uses-permission: name='" + p + "'\n" for p in permissions))
             if "xmltree" in args:
                 return "allowBackup(0x01010280)=(type 0x12)0x0\nio.github.josxtm.mangossh.community.MainActivity\n:mangossh"
@@ -28,10 +30,15 @@ class ApkInspectionTest(unittest.TestCase):
                 if extra:
                     archive.writestr(extra, extra_data)
             with patch("inspect_apk.subprocess.check_output", side_effect=command):
-                return inspect(apk, root)
+                return inspect(apk, root, flavor)
 
     def test_reviewed_package_passes(self):
         self.assertIn("PASS APK", self.run_inspection())
+
+    def test_tablet_identity_is_separate_and_checked(self):
+        self.assertIn("PASS APK", self.run_inspection(version="20003", flavor="tablet"))
+        with self.assertRaises(ValueError):
+            self.run_inspection(version="10003", flavor="tablet")
 
     def test_assets_and_unknown_payloads_blocked(self):
         for name in ["assets/catalog.txt", "res/raw/catalog.xml", "unknown.bin"]:

@@ -15,7 +15,7 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="TELECONTROL Público"
+        android:label="${appDisplayName}"
         android:theme="@style/AppTheme">
         <!-- Separate Activity, separate task and private process; not externally launchable. -->
         <!-- The approved original MangoSSH Compose UI replaces the legacy screen.
@@ -25,7 +25,7 @@
             android:exported="false"
             android:enabled="@bool/mangossh_compose_enabled"
             android:process=":mangossh"
-            android:taskAffinity="es.josxtm.telecontrol.community.mangossh"
+            android:taskAffinity="${mangoTaskAffinity}"
             android:launchMode="singleTask"
             android:label="MangoSSH"
             android:theme="@android:style/Theme.Material.Light.NoActionBar"/>
@@ -33,7 +33,7 @@
             android:name="io.github.josxtm.mangossh.community.MainActivity"
             android:exported="false"
             android:process=":mangossh"
-            android:taskAffinity="es.josxtm.telecontrol.community.mangossh"
+            android:taskAffinity="${mangoTaskAffinity}"
             android:launchMode="singleTask"
             android:label="MangoSSH"
             android:theme="@android:style/Theme.Material.Light.NoActionBar"/>

@@ -20,6 +20,21 @@ android {
         versionName "v.1.0 public - comp. ${publicComp}"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
+    flavorDimensions += "device"
+    productFlavors {
+        mobile {
+            dimension "device"
+            // Retain the installed public package and its existing update identity.
+            manifestPlaceholders = [appDisplayName: "TELECONTROL MOBILE", mangoTaskAffinity: "es.josxtm.telecontrol.community.mangossh"]
+        }
+        tablet {
+            dimension "device"
+            applicationIdSuffix ".tablet"
+            versionCode (20000 + publicComp)
+            versionName "v.1.0 tablet - comp. ${publicComp}"
+            manifestPlaceholders = [appDisplayName: "TELECONTROL TABLET", mangoTaskAffinity: "es.josxtm.telecontrol.community.tablet.mangossh"]
+        }
+    }
     packaging {
         resources.excludes += ['META-INF/DEPENDENCIES', 'META-INF/versions/**/OSGI-INF/**', 'DebugProbesKt.bin']
     }

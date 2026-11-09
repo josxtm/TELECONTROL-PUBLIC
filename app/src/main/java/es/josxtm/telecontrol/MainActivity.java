@@ -104,6 +104,20 @@ public final class MainActivity extends Activity {
             .build();
         webView.setWebViewClient(new WebViewClient() {
             @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                // Only the tablet flavor opts in; the approved mobile DOM/CSS remains untouched.
+                if ("tablet".equals(es.josxtm.telecontrol.community.BuildConfig.FLAVOR) && url != null
+                        && url.equals("https://" + ORIGIN + "/assets/index.html")) {
+                    view.evaluateJavascript(
+                        "(function(){if(document.getElementById('tablet-industrial-css'))return;"
+                        + "var c=document.createElement('link');c.id='tablet-industrial-css';"
+                        + "c.rel='stylesheet';c.href='tablet-industrial.css';document.head.appendChild(c);"
+                        + "var j=document.createElement('script');j.src='tablet-network.js';document.body.appendChild(j);"
+                        + "})();", null);
+                }
+            }
+            @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
                 if (!"https".equals(uri.getScheme()) || !ORIGIN.equals(uri.getHost())) {
