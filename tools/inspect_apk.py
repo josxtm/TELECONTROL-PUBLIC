@@ -21,6 +21,8 @@ OCR_SHA256 = {
 APPROVED_NATIVE_BASENAMES = frozenset({
     "libimage_processing_util_jni.so", "libsurface_util_jni.so",
     "libjpeg.so", "libleptonica.so", "libpngx.so", "libtesseract.so",
+    # Added by pinned Compose graphics-path and DataStore dependencies.
+    "libandroidx.graphics.path.so", "libdatastore_shared_counter.so",
 })
 EXPECTED_ELF_MACHINE = {
     "armeabi-v7a": 40, "arm64-v8a": 183, "x86": 3, "x86_64": 62,
