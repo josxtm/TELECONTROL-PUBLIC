@@ -14,7 +14,7 @@
 
 ## No completado
 
-- Logotipos corporativos originales, pendientes de validación de derechos.
+- Logotipos originales restaurados y auditados byte a byte. Derechos de las marcas pertenecen a sus titulares; su utilización debe ajustarse a los permisos aplicables.
 - Reglas privadas de red, sustituidas temporalmente por un adaptador neutro.
 - Migración probada de datos guardados por otras variantes de la aplicación.
 - Diseño completo original de la pantalla MangoSSH incrustada.
