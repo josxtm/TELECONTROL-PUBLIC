@@ -168,6 +168,16 @@ class ApkInspectionTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "embedded credential material"):
             self.run_inspection(resource=fake_key)
 
+    def test_public_mango_factory_gateway_allowed(self):
+        # Publicly documented factory default. Not a CT address.
+        address = ".".join(("192", "168", "8", "1"))
+        self.assertIn("PASS APK", self.run_inspection(resource=address))
+
+    def test_adjacent_private_gateway_still_blocked(self):
+        # Permit only the exact factory gateway, not its whole subnet.
+        address = ".".join(("192", "168", "8", "2"))
+        with self.assertRaisesRegex(ValueError, "IPv4 literal"):
+            self.run_inspection(resource=address)
     def test_sensitive_resource_blocked(self):
         with self.assertRaises(ValueError):
             self.run_inspection(resource=".".join(["192", "168", "77", "12"]))
