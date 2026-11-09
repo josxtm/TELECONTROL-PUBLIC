@@ -228,8 +228,17 @@ def inspect(apk, build_tools):
     # Report pattern categories only: never print potential credentials, IPs or
     # operational strings from DEX and resources into a public CI log.
     flagged = []
-    if any(value not in whitelist_ip for value in IP.findall(compiled)):
-        flagged.append("IPv4 literal")
+    # Diagnose the origin without ever exposing the matched address in public logs.
+    ip_sources = {
+        "compiled resources": resources,
+        "compiled XML": "\\n".join(xml_resources),
+        "APK metadata": metadata,
+        "DEX constants": "\\n".join(dex_strings),
+    }
+    ip_categories = [label for label, payload in ip_sources.items()
+                     if any(value not in whitelist_ip for value in IP.findall(payload))]
+    if ip_categories:
+        flagged.append("IPv4 literal (sources: " + ", ".join(ip_categories) + ")")
     # JSch's public SSH key *parser* embeds a PEM header marker as a
     # constant. A header alone is not a credential. Reject actual PEM key
     # material (header, substantial base64 body and matching footer) and tokens.
