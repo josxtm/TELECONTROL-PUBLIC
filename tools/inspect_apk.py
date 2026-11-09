@@ -224,7 +224,7 @@ def inspect(apk, build_tools):
     # GUI bytecode. Reject credentials, literal operational IPs and topology,
     # rather than treating every public brand name as confidential.
     compiled = resources + "\n" + "\n".join(xml_resources) + "\n" + metadata + "\n" + "\n".join(dex_strings)
-    whitelist_ip = {".".join(parts) for parts in (("0", "0", "0", "0"), ("127", "0", "0", "1"), ("255", "255", "255", "255"))}
+    # GL.iNet Mango (GL-MT300N-V2) publicly documented factory gateway.\n    # This exception is exact; all other non-system IPv4 literals remain blocked.\n    whitelist_ip = {".".join(parts) for parts in (("0", "0", "0", "0"), ("127", "0", "0", "1"), ("255", "255", "255", "255"), ("192", "168", "8", "1"))}
     # Report pattern categories only: never print potential credentials, IPs or
     # operational strings from DEX and resources into a public CI log.
     flagged = []
