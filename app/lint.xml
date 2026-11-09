@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- The original MangoSSH feature was developed with minSdk 26.
+         Its non-exported Activity is resource-disabled on Android 23-25,
+         and TELECONTROL's bridge also checks API 26 before launching.
+         NewApi is scoped exclusively to this unavailable-on-older-OS
+         feature; do NOT suppress any other checks or Java bridge code. -->
+    <issue id="NewApi">
+        <ignore path="src/main/java/io/github/josxtm/mangossh"/>
+    </issue>
+</lint>

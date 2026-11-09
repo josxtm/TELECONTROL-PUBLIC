@@ -73,6 +73,14 @@ class PublicGuardTest(unittest.TestCase):
             target.write_text(".".join(["192", "0", "2", "44"]), encoding="utf-8")
             self.assertTrue(check(root))
 
+    def test_locally_spoofed_dependency_package_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / "app/src/main/java/org/bouncycastle/Fake.java"
+            path.parent.mkdir(parents=True)
+            path.write_text("package org.bouncycastle; class Fake {}", encoding="utf-8")
+            self.assertTrue(any("unapproved local Java/Kotlin package" in reason
+                                for _, reason in check(root)))
+
     def test_keystore_is_rejected(self):
         with tempfile.TemporaryDirectory() as root:
             (Path(root) / "sign.jks").write_bytes(b"test")

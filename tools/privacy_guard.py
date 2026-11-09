@@ -57,7 +57,8 @@ SKIP = {".git", ".gradle", "build", ".idea", "__pycache__"}
 NAME = re.compile(r"ct_data|telecontrol_ct|privado|confidencial|credential|secret|mo[._ -]?01033", re.I)
 CORPORATE = re.compile(r"\b(?:UFD|Naturgy|Eiffage|NaturalCor|TERED|GNFT)\b|MO[. -]?01033", re.I)
 NET = re.compile(r"(?:IP\s+LAN|IP\s+TC|LAN\s*\+\s*(?:1|2|3|9|10|11|13|14)|eth0\.2)", re.I)
-IP = re.compile(r"(?<!\d)(?:\d{1,3}\.){3}\d{1,3}(?!\d)")
+# Do not recognize four arcs embedded in longer ASN.1 object identifiers.
+IP = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
 KEY = re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----|github_pat_[A-Za-z0-9_]{16,}|gh[pousr]_[A-Za-z0-9]{16,}", re.I)
 PASSWORD = re.compile(r"(?:storePassword|keyPassword|api[_-]?key|password)\s*(?:=|:)\s*['\"][^'\"]{5,}['\"]", re.I)
 
@@ -105,6 +106,18 @@ def check(root):
         # The guard itself necessarily contains literal detection patterns.
         if rel == "tools/privacy_guard.py":
             continue
+        # External-library namespaces must come only from pinned Gradle
+        # dependencies, never from locally added classes impersonating a vendor.
+        if rel.startswith(("app/src/main/java/", "app/src/main/kotlin/")):
+            approved_source_roots = (
+                "app/src/main/java/es/josxtm/telecontrol/",
+                "app/src/main/java/io/github/josxtm/mangossh/",
+                "app/src/main/kotlin/es/josxtm/telecontrol/",
+                "app/src/main/kotlin/io/github/josxtm/mangossh/",
+            )
+            if not rel.startswith(approved_source_roots):
+                problems.append((rel, "unapproved local Java/Kotlin package"))
+                continue
         # Git metadata configuration is not a source file but is safe to inspect.
         if rel == ".gitignore":
             continue

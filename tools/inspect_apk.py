@@ -2,13 +2,14 @@
 """Inspect the actual preview package, permissions, resources and signing certificate."""
 import argparse
 import hashlib
+import ipaddress
 from pathlib import Path
 import re
 import subprocess
 import struct
-import tempfile
 import zipfile
 from privacy_guard import check, APPROVED_UI_ASSETS, IP, KEY, PASSWORD, TOPOLOGY
+from dex_ip_audit import literal_owners
 
 OCR_SHA256 = {
     "assets/ocr/eng.traineddata": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
@@ -21,6 +22,8 @@ OCR_SHA256 = {
 APPROVED_NATIVE_BASENAMES = frozenset({
     "libimage_processing_util_jni.so", "libsurface_util_jni.so",
     "libjpeg.so", "libleptonica.so", "libpngx.so", "libtesseract.so",
+    # Added by pinned Compose graphics-path and DataStore dependencies.
+    "libandroidx.graphics.path.so", "libdatastore_shared_counter.so",
 })
 EXPECTED_ELF_MACHINE = {
     "armeabi-v7a": 40, "arm64-v8a": 183, "x86": 3, "x86_64": 62,
@@ -36,6 +39,24 @@ APPROVED_KOTLIN_BUILTINS = frozenset({
     "kotlin/ranges/ranges.kotlin_builtins",
     "kotlin/reflect/reflect.kotlin_builtins",
 })
+
+
+def is_unreviewed_ipv4_literal(value, permitted):
+    # ASN.1 OIDs are sequences of decimal arcs, not network addresses.
+    # Exempt only complete canonical OIDs; never text containing a real IP.
+    parts = value.split(".")
+    if len(parts) >= 4 and all(part.isdigit() for part in parts):
+        first = int(parts[0])
+        if first in (0, 1, 2) and (first == 2 or int(parts[1]) < 40):
+            return False
+    for literal in IP.findall(value):
+        try:
+            ipaddress.IPv4Address(literal)
+        except ipaddress.AddressValueError:
+            continue
+        if literal not in permitted:
+            return True
+    return False
 
 
 def inspect(apk, build_tools):
@@ -79,6 +100,7 @@ def inspect(apk, build_tools):
     if not re.search(r"allowBackup\([^\n]*=\(type 0x12\)0x0", manifest):
         raise ValueError("Automatic backup must be disabled")
     dex_strings = []
+    dex_payloads = []
     xml_resources = []
     metadata = ""
     with zipfile.ZipFile(apk) as archive:
@@ -99,6 +121,24 @@ def inspect(apk, build_tools):
                 # The exact file name and bounded size are verified. These are
                 # dependency metadata, not app content or stored CT records.
                 continue
+            if name == "META-INF/services/java.security.Provider":
+                # Pinned Bouncy Castle registration; validate exact service classes.
+                info = archive.getinfo(name)
+                if info.file_size > 1024:
+                    raise ValueError("Unexpected security provider descriptor size")
+                entries = [line.strip() for line in archive.read(name).decode("utf-8").splitlines()
+                           if line.strip() and not line.lstrip().startswith("#")]
+                allowed = {"org.bouncycastle.jce.provider.BouncyCastleProvider",
+                           "org.bouncycastle.jsse.provider.BouncyCastleJsseProvider",
+                           "org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider"}
+                if not entries or len(entries) != len(set(entries)) or not set(entries).issubset(allowed):
+                    # Class names alone (never credentials or document bodies) identify
+                    # an unexpected dependency registration for a narrow future review.
+                    unknown = sorted({entry for entry in entries if entry not in allowed
+                                      and re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_.$]{0,180}", entry)})
+                    raise ValueError("Unexpected security provider registration (classes only): "
+                                     + ", ".join(unknown or ["invalid descriptor"]))
+                continue
             if re.fullmatch(r"META-INF/services/kotlinx\.coroutines(?:\.[A-Za-z0-9_]+)+", name):
                 # Kotlin coroutines ServiceLoader registrations are text metadata
                 # from pinned runtime dependencies, never user- or CT-specific data.
@@ -110,6 +150,17 @@ def inspect(apk, build_tools):
                 if not services or any(not re.fullmatch(
                     r"kotlinx\.coroutines(?:\.[A-Za-z0-9_$]+)+", line) for line in services):
                     raise ValueError("Unexpected coroutine service registration")
+                continue
+            if re.fullmatch(
+                r"org/bouncycastle/x509/CertPathReviewerMessages(?:_[a-z]{2})?\.properties", name
+            ):
+                # Public localization strings from the pinned Bouncy Castle jar.
+                info = archive.getinfo(name)
+                if info.file_size < 10 or info.file_size > 262144:
+                    raise ValueError("Unexpected reviewed Bouncy Castle properties size")
+                payload = archive.read(name)
+                if b"\x00" in payload:
+                    raise ValueError("Unexpected binary payload in Bouncy Castle properties")
                 continue
             if name.startswith("lib/"):
                 parts = name.split("/")
@@ -176,6 +227,7 @@ def inspect(apk, build_tools):
                 metadata = archive.read(name).decode("utf-8")
             if re.fullmatch(r"classes\d*\.dex", name):
                 data = archive.read(name)
+                dex_payloads.append(data)
                 if not data.startswith(b"dex\n"):
                     raise ValueError("Invalid bytecode container")
                 count, table = struct.unpack_from("<II", data, 56)
@@ -193,12 +245,60 @@ def inspect(apk, build_tools):
     # GUI bytecode. Reject credentials, literal operational IPs and topology,
     # rather than treating every public brand name as confidential.
     compiled = resources + "\n" + "\n".join(xml_resources) + "\n" + metadata + "\n" + "\n".join(dex_strings)
-    whitelist_ip = {".".join(parts) for parts in (("0", "0", "0", "0"), ("127", "0", "0", "1"), ("255", "255", "255", "255"))}
+    # GL.iNet Mango (GL-MT300N-V2) publicly documented factory gateway.
+    # This exception is exact; all other non-system IPv4 literals remain blocked.
+    whitelist_ip = {
+        ".".join(parts) for parts in (
+            ("0", "0", "0", "0"), ("127", "0", "0", "1"),
+            ("255", "255", "255", "255"), ("192", "168", "8", "1"),
+        )
+    }
     # Report pattern categories only: never print potential credentials, IPs or
     # operational strings from DEX and resources into a public CI log.
     flagged = []
-    if any(value not in whitelist_ip for value in IP.findall(compiled)):
-        flagged.append("IPv4 literal")
+    # Diagnose the origin without ever exposing the matched address in public logs.
+    ip_sources = {
+        "compiled resources": resources,
+        "compiled XML": "\n".join(xml_resources),
+        "APK metadata": metadata,
+    }
+    ip_categories = [label for label, payload in ip_sources.items()
+                     if is_unreviewed_ipv4_literal(payload, whitelist_ip)]
+    if any(is_unreviewed_ipv4_literal(value, whitelist_ip) for value in dex_strings):
+        ip_categories.append("DEX constants")
+    if "DEX constants" in ip_categories:
+        # Application-owned literals remain blocked. Only literals provably
+        # referenced solely by pinned public dependency packages can pass.
+        approved_dependency_packages = (
+            "Lorg/bouncycastle/", "Lcom/jcraft/jsch/", "Landroidx/",
+            "Lcom/google/", "Lorg/apache/", "Lkotlin/", "Lkotlinx/",
+            "Lokhttp3/", "Lokio/", "Lcz/adaptech/",
+        )
+        blocked_owners = set()
+        trusted_count = 0
+        for dex_data in dex_payloads:
+            references = literal_owners(
+                dex_data, lambda value: is_unreviewed_ipv4_literal(value, whitelist_ip)
+            )
+            for owners in references.values():
+                if owners and all(owner.startswith(approved_dependency_packages)
+                                  for owner in owners):
+                    trusted_count += 1
+                else:
+                    blocked_owners.update(owners or {"unattributed"})
+        if not blocked_owners:
+            ip_categories.remove("DEX constants")
+            if trusted_count:
+                print("PASS DEX IPv4: referenced only by pinned public libraries "
+                      "(values withheld)", flush=True)
+        else:
+            safe_owners = sorted(owner for owner in blocked_owners
+                                 if owner == "unattributed" or re.fullmatch(
+                                     r"L[A-Za-z0-9_/$;-]{1,180}", owner))
+            print("Blocked DEX IPv4 class origins (names only): "
+                  + ", ".join(safe_owners[:16] or ["invalid-owner"]), flush=True)
+    if ip_categories:
+        flagged.append("IPv4 literal (sources: " + ", ".join(ip_categories) + ")")
     # JSch's public SSH key *parser* embeds a PEM header marker as a
     # constant. A header alone is not a credential. Reject actual PEM key
     # material (header, substantial base64 body and matching footer) and tokens.

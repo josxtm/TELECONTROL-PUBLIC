@@ -6,7 +6,7 @@ from unittest.mock import patch
 import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from inspect_apk import inspect
+from inspect_apk import inspect, is_unreviewed_ipv4_literal
 
 
 class ApkInspectionTest(unittest.TestCase):
@@ -106,6 +106,34 @@ class ApkInspectionTest(unittest.TestCase):
             self.run_inspection(extra="res/drawable-hdpi-v4/abc_sample.9.png",
                                 extra_data=b"not a real PNG")
 
+    def test_pinned_security_provider_is_allowed(self):
+        self.assertIn("PASS APK", self.run_inspection(
+            extra="META-INF/services/java.security.Provider",
+            extra_data="org.bouncycastle.jce.provider.BouncyCastleProvider\n"))
+
+    def test_pinned_bouncy_castle_pqc_provider_is_allowed(self):
+        self.assertIn("PASS APK", self.run_inspection(
+            extra="META-INF/services/java.security.Provider",
+            extra_data="org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider\n"))
+
+    def test_unreviewed_security_provider_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "security provider registration"):
+            self.run_inspection(
+                extra="META-INF/services/java.security.Provider",
+                extra_data="com.untrusted.CustomProvider\n")
+
+    def test_exact_public_bouncy_castle_properties_allowed(self):
+        payload = b"review.summary=synthetic test only\n"
+        self.assertIn("PASS APK", self.run_inspection(
+            extra="org/bouncycastle/x509/CertPathReviewerMessages.properties",
+            extra_data=payload))
+
+    def test_unrecognized_provider_properties_path_rejected(self):
+        with self.assertRaises(ValueError):
+            self.run_inspection(
+                extra="org/bouncycastle/unreviewed/secret.properties",
+                extra_data=b"test=unreviewed\n")
+
     def test_bounded_coroutine_service_descriptor_allowed(self):
         self.assertIn("PASS APK", self.run_inspection(
             extra="META-INF/services/kotlinx.coroutines.CoroutineExceptionHandler",
@@ -140,6 +168,27 @@ class ApkInspectionTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "embedded credential material"):
             self.run_inspection(resource=fake_key)
 
+    def test_asn1_oid_arcs_are_not_mistaken_for_ipv4(self):
+        for arcs in (("2", "5", "4", "3"), ("1", "3", "6", "1", "4", "1")):
+            with self.subTest(arcs=arcs):
+                self.assertFalse(is_unreviewed_ipv4_literal(".".join(arcs), set()))
+
+    def test_real_ipv4_is_still_blocked_even_in_context(self):
+        forbidden = ".".join(("192", "168", "77", "12"))
+        self.assertTrue(is_unreviewed_ipv4_literal("ssh://" + forbidden + ":22", set()))
+        self.assertFalse(is_unreviewed_ipv4_literal(forbidden, {forbidden}))
+        self.assertFalse(is_unreviewed_ipv4_literal(".".join(("999",) * 4), set()))
+
+    def test_public_mango_factory_gateway_allowed(self):
+        # Publicly documented factory default. Not a CT address.
+        address = ".".join(("192", "168", "8", "1"))
+        self.assertIn("PASS APK", self.run_inspection(resource=address))
+
+    def test_adjacent_private_gateway_still_blocked(self):
+        # Permit only the exact factory gateway, not its whole subnet.
+        address = ".".join(("192", "168", "8", "2"))
+        with self.assertRaisesRegex(ValueError, "IPv4 literal"):
+            self.run_inspection(resource=address)
     def test_sensitive_resource_blocked(self):
         with self.assertRaises(ValueError):
             self.run_inspection(resource=".".join(["192", "168", "77", "12"]))

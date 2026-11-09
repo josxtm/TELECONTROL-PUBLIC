@@ -254,7 +254,7 @@ public final class MainActivity extends Activity {
                 }
                 String title = name == null ? "" : name.replaceAll("[\\p{Cntrl}]", "").trim();
                 if (title.length() > 120) title = title.substring(0, 120);
-                Intent intent = new Intent(MainActivity.this, io.github.josxtm.mangossh.community.MainActivity.class);
+                Intent intent = new Intent(MainActivity.this, io.github.josxtm.mangossh.MainActivity.class);
                 intent.putExtra("telecontrol.ct.matricula", code);
                 intent.putExtra("telecontrol.ct.name", title);
                 intent.putExtra("telecontrol.ct.lan", lan);
