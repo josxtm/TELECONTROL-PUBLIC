@@ -224,16 +224,23 @@ def inspect(apk, build_tools):
     # GUI bytecode. Reject credentials, literal operational IPs and topology,
     # rather than treating every public brand name as confidential.
     compiled = resources + "\n" + "\n".join(xml_resources) + "\n" + metadata + "\n" + "\n".join(dex_strings)
-    # GL.iNet Mango (GL-MT300N-V2) publicly documented factory gateway.\n    # This exception is exact; all other non-system IPv4 literals remain blocked.\n    whitelist_ip = {".".join(parts) for parts in (("0", "0", "0", "0"), ("127", "0", "0", "1"), ("255", "255", "255", "255"), ("192", "168", "8", "1"))}
+    # GL.iNet Mango (GL-MT300N-V2) publicly documented factory gateway.
+    # This exception is exact; all other non-system IPv4 literals remain blocked.
+    whitelist_ip = {
+        ".".join(parts) for parts in (
+            ("0", "0", "0", "0"), ("127", "0", "0", "1"),
+            ("255", "255", "255", "255"), ("192", "168", "8", "1"),
+        )
+    }
     # Report pattern categories only: never print potential credentials, IPs or
     # operational strings from DEX and resources into a public CI log.
     flagged = []
     # Diagnose the origin without ever exposing the matched address in public logs.
     ip_sources = {
         "compiled resources": resources,
-        "compiled XML": "\\n".join(xml_resources),
+        "compiled XML": "\n".join(xml_resources),
         "APK metadata": metadata,
-        "DEX constants": "\\n".join(dex_strings),
+        "DEX constants": "\n".join(dex_strings),
     }
     ip_categories = [label for label, payload in ip_sources.items()
                      if any(value not in whitelist_ip for value in IP.findall(payload))]
