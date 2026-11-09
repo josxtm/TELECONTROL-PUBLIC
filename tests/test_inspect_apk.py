@@ -6,7 +6,7 @@ from unittest.mock import patch
 import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from inspect_apk import inspect
+from inspect_apk import inspect, is_unreviewed_ipv4_literal
 
 
 class ApkInspectionTest(unittest.TestCase):
@@ -167,6 +167,17 @@ class ApkInspectionTest(unittest.TestCase):
         fake_key = header + "\n" + ("A" * 160) + "\n" + footer
         with self.assertRaisesRegex(ValueError, "embedded credential material"):
             self.run_inspection(resource=fake_key)
+
+    def test_asn1_oid_arcs_are_not_mistaken_for_ipv4(self):
+        for arcs in (("2", "5", "4", "3"), ("1", "3", "6", "1", "4", "1")):
+            with self.subTest(arcs=arcs):
+                self.assertFalse(is_unreviewed_ipv4_literal(".".join(arcs), set()))
+
+    def test_real_ipv4_is_still_blocked_even_in_context(self):
+        forbidden = ".".join(("192", "168", "77", "12"))
+        self.assertTrue(is_unreviewed_ipv4_literal("ssh://" + forbidden + ":22", set()))
+        self.assertFalse(is_unreviewed_ipv4_literal(forbidden, {forbidden}))
+        self.assertFalse(is_unreviewed_ipv4_literal(".".join(("999",) * 4), set()))
 
     def test_public_mango_factory_gateway_allowed(self):
         # Publicly documented factory default. Not a CT address.
