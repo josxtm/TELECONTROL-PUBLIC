@@ -105,6 +105,18 @@ def check(root):
         # The guard itself necessarily contains literal detection patterns.
         if rel == "tools/privacy_guard.py":
             continue
+        # External-library namespaces must come only from pinned Gradle
+        # dependencies, never from locally added classes impersonating a vendor.
+        if rel.startswith(("app/src/main/java/", "app/src/main/kotlin/")):
+            approved_source_roots = (
+                "app/src/main/java/es/josxtm/telecontrol/",
+                "app/src/main/java/io/github/josxtm/mangossh/",
+                "app/src/main/kotlin/es/josxtm/telecontrol/",
+                "app/src/main/kotlin/io/github/josxtm/mangossh/",
+            )
+            if not rel.startswith(approved_source_roots):
+                problems.append((rel, "unapproved local Java/Kotlin package"))
+                continue
         # Git metadata configuration is not a source file but is safe to inspect.
         if rel == ".gitignore":
             continue
