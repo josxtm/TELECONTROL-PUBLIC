@@ -46,6 +46,19 @@ class ApkInspectionTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.run_inspection(compilation="8")
 
+    def test_androidx_same_package_receiver_permission_allowed(self):
+        permissions = ("android.permission.RECORD_AUDIO", "android.permission.INTERNET",
+                       "android.permission.CAMERA",
+                       "es.josxtm.telecontrol.community.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
+        self.assertIn("PASS APK", self.run_inspection(permissions=permissions))
+
+    def test_unknown_package_receiver_permission_remains_blocked(self):
+        permissions = ("android.permission.RECORD_AUDIO", "android.permission.INTERNET",
+                       "android.permission.CAMERA",
+                       "com.example.other.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
+        with self.assertRaisesRegex(ValueError, "unexpected:"):
+            self.run_inspection(permissions=permissions)
+
     def test_fake_launcher_image_blocked(self):
         with self.assertRaises(ValueError):
             self.run_inspection(extra="res/mipmap-mdpi-v4/ic_launcher.png")
