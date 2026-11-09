@@ -4,7 +4,7 @@
 
 **Realizado:** recuperación de fuentes WebView/HTML/CSS/JS, 21+ recursos de frontend, clases nativas de cámara, sincronización y recordatorios, integración SSH desde portada, icono original de MangoSSH y versiones públicas numeradas.
 
-**Pendiente:** activos gráficos sujetos a derechos, módulo de red local sin tabla interna publicable, migración segura de almacenes públicos antiguos, GUI original de MangoSSH incrustado, comparaciones visuales y firma persistente.
+**Pendiente:** verificar condiciones de distribución de los logotipos originales restaurados, módulo de red local sin tabla interna publicable, migración segura de almacenes públicos antiguos, GUI original de MangoSSH incrustado, comparaciones visuales y firma persistente.
 
 ## Identidad de distribución
 
