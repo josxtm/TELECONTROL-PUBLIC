@@ -101,6 +101,18 @@ def inspect(apk, build_tools):
                 # The exact file name and bounded size are verified. These are
                 # dependency metadata, not app content or stored CT records.
                 continue
+            if name == "META-INF/services/java.security.Provider":
+                # Pinned Bouncy Castle registration; validate exact service classes.
+                info = archive.getinfo(name)
+                if info.file_size > 1024:
+                    raise ValueError("Unexpected security provider descriptor size")
+                entries = [line.strip() for line in archive.read(name).decode("utf-8").splitlines()
+                           if line.strip() and not line.lstrip().startswith("#")]
+                allowed = {"org.bouncycastle.jce.provider.BouncyCastleProvider",
+                           "org.bouncycastle.jsse.provider.BouncyCastleJsseProvider"}
+                if not entries or len(entries) != len(set(entries)) or not set(entries).issubset(allowed):
+                    raise ValueError("Unexpected security provider registration")
+                continue
             if re.fullmatch(r"META-INF/services/kotlinx\.coroutines(?:\.[A-Za-z0-9_]+)+", name):
                 # Kotlin coroutines ServiceLoader registrations are text metadata
                 # from pinned runtime dependencies, never user- or CT-specific data.
