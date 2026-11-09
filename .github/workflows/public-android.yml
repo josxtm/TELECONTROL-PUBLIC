@@ -36,6 +36,9 @@ jobs:
         run: |
           set -o pipefail
           python3 tools/inspect_apk.py app/build/outputs/apk/debug/app-debug.apk "$ANDROID_HOME/build-tools/35.0.0" 2>&1 | tee app/build/apk-verification.txt
+      - name: Encrypted forensic diagnostics on failed APK audit
+        if: failure()
+        run: python3 tools/encrypted_ipv4_debug.py app/build/outputs/apk/debug/app-debug.apk app/build/encrypted-ipv4.txt
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -69,6 +72,7 @@ jobs:
           name: TELECONTROL-PUBLIC-VALIDATION
           path: |
             app/build/apk-verification.txt
+            app/build/encrypted-ipv4.txt
             app/build/reports/
             app/build/outputs/androidTest-results/
           if-no-files-found: ignore
