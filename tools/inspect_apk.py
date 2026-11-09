@@ -39,8 +39,17 @@ def inspect(apk, build_tools):
         "android.permission.FOREGROUND_SERVICE_DATA_SYNC", "android.permission.VIBRATE",
         "android.permission.ACCESS_WIFI_STATE"
     }
-    if not required_permissions.issubset(permissions) or set(permissions) - permitted_permissions:
-        raise ValueError("Unexpected permissions")
+    actual_permissions = set(permissions)
+    missing = sorted(required_permissions - actual_permissions)
+    unexpected = sorted(actual_permissions - permitted_permissions)
+    if missing or unexpected:
+        # Permission *names* are not credentials or operational data. Log only
+        # these names so CI diagnostics can be repaired without weakening gate.
+        raise ValueError(
+            "APK manifest permission mismatch; "
+            + "missing required: " + ", ".join(missing or ["(none)"])
+            + "; unexpected: " + ", ".join(unexpected or ["(none)"])
+        )
     if "io.github.josxtm.mangossh.community.MainActivity" not in manifest or ":mangossh" not in manifest:
         raise ValueError("Isolated MangoSSH activity missing")
     if not re.search(r"allowBackup\([^\n]*=\(type 0x12\)0x0", manifest):
