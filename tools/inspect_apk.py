@@ -83,7 +83,8 @@ def inspect(apk, build_tools):
                     or re.fullmatch(r"res/[A-Za-z0-9_+/-]+\.xml", name)
                     or re.fullmatch(r"res/mipmap-(?:mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)(?:-v[0-9]+)?/ic_launcher\.png", name)
                     or re.fullmatch(r"META-INF/[A-Za-z0-9_.-]+", name)):
-                raise ValueError("Unreviewed packaged resource")
+                safe_name = re.sub(r"[^A-Za-z0-9_./+-]", "?", name)[:160]
+                raise ValueError("Unreviewed packaged resource path: " + safe_name)
             if name.startswith("res/raw") or name.startswith("assets/"):
                 raise ValueError("Bundled data is forbidden")
             if name.startswith("res/mipmap-") and name.endswith("/ic_launcher.png"):
