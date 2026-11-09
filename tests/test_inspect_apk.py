@@ -106,6 +106,17 @@ class ApkInspectionTest(unittest.TestCase):
             self.run_inspection(extra="res/drawable-hdpi-v4/abc_sample.9.png",
                                 extra_data=b"not a real PNG")
 
+    def test_bounded_coroutine_service_descriptor_allowed(self):
+        self.assertIn("PASS APK", self.run_inspection(
+            extra="META-INF/services/kotlinx.coroutines.CoroutineExceptionHandler",
+            extra_data="kotlinx.coroutines.android.AndroidExceptionPreHandler\n"))
+
+    def test_coroutine_descriptor_cannot_load_unreviewed_class(self):
+        with self.assertRaisesRegex(ValueError, "Unexpected coroutine service registration"):
+            self.run_inspection(
+                extra="META-INF/services/kotlinx.coroutines.CoroutineExceptionHandler",
+                extra_data="com.example.secret.UnreviewedHandler\n")
+
     def test_sensitive_resource_blocked(self):
         with self.assertRaises(ValueError):
             self.run_inspection(resource=".".join(["192", "168", "77", "12"]))
