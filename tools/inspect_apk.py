@@ -2,6 +2,7 @@
 """Inspect the actual preview package, permissions, resources and signing certificate."""
 import argparse
 import hashlib
+import ipaddress
 from pathlib import Path
 import re
 import subprocess
@@ -38,6 +39,24 @@ APPROVED_KOTLIN_BUILTINS = frozenset({
     "kotlin/ranges/ranges.kotlin_builtins",
     "kotlin/reflect/reflect.kotlin_builtins",
 })
+
+
+def is_unreviewed_ipv4_literal(value, permitted):
+    # ASN.1 OIDs are sequences of decimal arcs, not network addresses.
+    # Exempt only complete canonical OIDs; never text containing a real IP.
+    parts = value.split(".")
+    if len(parts) >= 4 and all(part.isdigit() for part in parts):
+        first = int(parts[0])
+        if first in (0, 1, 2) and (first == 2 or int(parts[1]) < 40):
+            return False
+    for literal in IP.findall(value):
+        try:
+            ipaddress.IPv4Address(literal)
+        except ipaddress.AddressValueError:
+            continue
+        if literal not in permitted:
+            return True
+    return False
 
 
 def inspect(apk, build_tools):
@@ -242,10 +261,11 @@ def inspect(apk, build_tools):
         "compiled resources": resources,
         "compiled XML": "\n".join(xml_resources),
         "APK metadata": metadata,
-        "DEX constants": "\n".join(dex_strings),
     }
     ip_categories = [label for label, payload in ip_sources.items()
-                     if any(value not in whitelist_ip for value in IP.findall(payload))]
+                     if is_unreviewed_ipv4_literal(payload, whitelist_ip)]
+    if any(is_unreviewed_ipv4_literal(value, whitelist_ip) for value in dex_strings):
+        ip_categories.append("DEX constants")
     if "DEX constants" in ip_categories:
         # Application-owned literals remain blocked. Only literals provably
         # referenced solely by pinned public dependency packages can pass.
@@ -258,8 +278,7 @@ def inspect(apk, build_tools):
         trusted_count = 0
         for dex_data in dex_payloads:
             references = literal_owners(
-                dex_data, lambda value: any(
-                    ip not in whitelist_ip for ip in IP.findall(value))
+                dex_data, lambda value: is_unreviewed_ipv4_literal(value, whitelist_ip)
             )
             for owners in references.values():
                 if owners and all(owner.startswith(approved_dependency_packages)
