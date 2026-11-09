@@ -199,8 +199,16 @@ def inspect(apk, build_tools):
     flagged = []
     if any(value not in whitelist_ip for value in IP.findall(compiled)):
         flagged.append("IPv4 literal")
-    if KEY.search(compiled):
-        flagged.append("credential signature")
+    # JSch's public SSH key *parser* embeds a PEM header marker as a
+    # constant. A header alone is not a credential. Reject actual PEM key
+    # material (header, substantial base64 body and matching footer) and tokens.
+    embedded_token = re.search(r"(?:github_pat_|gh[pousr]_)[A-Za-z0-9_]{16,}", compiled)
+    embedded_pem = re.search(
+        r"-{5}BEGIN ([A-Z ]*PRIVATE KEY)-{5}\\s*[A-Za-z0-9+/=\\s]{96,}-"
+        r"{5}END \\1-{5}", compiled
+    )
+    if embedded_token or embedded_pem:
+        flagged.append("embedded credential material")
     if PASSWORD.search(compiled):
         flagged.append("password assignment")
     if TOPOLOGY.search(compiled):
