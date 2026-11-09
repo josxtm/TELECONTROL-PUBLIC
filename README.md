@@ -1,6 +1,6 @@
 # TELECONTROL Público
 
-Edición Android pública independiente, con consulta local de catálogos aportados por el usuario. Paquete `es.josxtm.telecontrol.community`, versión `0.2.0-public`, `versionCode 2`. Se instala en paralelo con las ediciones privadas.
+Edición Android pública independiente, con consulta local de catálogos aportados por el usuario. Paquete `es.josxtm.telecontrol.community`, versión visible **`v.1.0 public - comp. X`**, donde **X** es el número de ejecución de GitHub Actions (o el valor pasado mediante `-PpublicCompilationNumber=X`). `versionCode = 10000 + X`. Se instala en paralelo con las ediciones privadas.
 
 ## Funciones
 
@@ -11,7 +11,16 @@ Edición Android pública independiente, con consulta local de catálogos aporta
 - Temas sistema, claro y oscuro; interfaz desplazable con ancho limitado en tablet, texto escalable y márgenes del sistema.
 - Dictado exclusivamente con el reconocedor **en el dispositivo** de Android 12 o posterior cuando esté disponible. No se utiliza reconocimiento remoto como alternativa. Solo se pide micrófono al pulsar dictar.
 
-No contiene catálogos, analítica, permisos de Internet ni servicios propios. Los datos se guardan en el almacenamiento privado de esta aplicación. Se bloquean capturas de pantalla y copias automáticas del sistema. Los teclados y proveedores de documentos elegidos por el usuario tienen sus propias políticas: elige servicios locales autorizados.
+No contiene catálogos reales, analítica ni servicios propios. El permiso `INTERNET` se utiliza exclusivamente por el cliente SSH integrado bajo autorización del usuario; Android no limita técnicamente dicho permiso a una red local. Los datos se guardan en el almacenamiento privado de esta aplicación. Se bloquean capturas de pantalla y copias automáticas del sistema. Los teclados y proveedores de documentos elegidos por el usuario tienen sus propias políticas: elige servicios locales autorizados.
+
+## MangoSSH en otra instancia
+
+- La única modificación de la portada es **un icono de mango con gafas** que abre MangoSSH.
+- MangoSSH se incorpora a la misma APK, pero se ejecuta en **otra Activity, tarea y proceso Android** (`:mangossh`), no como una aplicación instalada por separado. Volver no reinicia TELECONTROL.
+- El cliente SSH procede de código genérico público de `josxtm/MANGOSSH-PUBLIC`: introducir host, puerto, usuario y contraseña de sesión, comprobar huella SHA-256, diagnósticos permitidos y terminal interactiva previa confirmación.
+- No transfiere automáticamente catálogos, notas o datos de fichas al cliente SSH; no guarda la contraseña ni se conecta sin que el usuario lo solicite.
+- El acceso a MangoSSH requiere **Android 8/API 26**; TELECONTROL conserva soporte desde API 23 y muestra aviso en sistemas más antiguos.
+- Los identificadores, catálogos y contenidos locales no se incluyen en el código fuente ni se transmiten a servidores de la aplicación.
 
 ## Formato de importación
 

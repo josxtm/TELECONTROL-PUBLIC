@@ -69,6 +69,29 @@ public final class ActivitySmokeTest extends ActivityInstrumentationTestCase2<Ma
             assertEquals("Synthetic UI diary", store.journal(Long.MAX_VALUE).get(0).body);
         }
     }
+    private static View findMangoIcon(View view) {
+        if (view instanceof android.widget.ImageButton
+                && "Abrir MangoSSH".contentEquals(view.getContentDescription())) return view;
+        if (view instanceof ViewGroup) for (int index = 0; index < ((ViewGroup) view).getChildCount(); index++) {
+            View candidate = findMangoIcon(((ViewGroup) view).getChildAt(index));
+            if (candidate != null) return candidate;
+        }
+        return null;
+    }
+
+    public void testMangoIconAndIsolatedActivityConfiguration() throws Throwable {
+        getInstrumentation().runOnMainSync(() -> {
+            View icon = findMangoIcon(activity.getWindow().getDecorView());
+            assertNotNull("MangoSSH icon must appear on the original home", icon);
+            assertTrue(icon.isClickable());
+        });
+        android.content.pm.ActivityInfo info = activity.getPackageManager().getActivityInfo(
+            new android.content.ComponentName(activity,
+                io.github.josxtm.mangossh.community.MainActivity.class), 0);
+        assertFalse("MangoSSH must not be externally exported", info.exported);
+        assertTrue("MangoSSH must use another process", info.processName.endsWith(":mangossh"));
+    }
+
     public void testCanceledSystemPickerPreservesCatalog() throws Throwable {
         getInstrumentation().runOnMainSync(() -> activity.onActivityResult(11, android.app.Activity.RESULT_CANCELED, new Intent()));
         try (LocalStore store = new LocalStore(getInstrumentation().getTargetContext())) {

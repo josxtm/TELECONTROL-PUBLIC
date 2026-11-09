@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Required only for user-initiated SSH sessions; Android INTERNET is not LAN-scoped. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <queries><intent><action android:name="android.speech.RecognitionService"/></intent></queries>
     <application
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:usesCleartextTraffic="false"
-        android:icon="@drawable/ic_public"
+        android:icon="@mipmap/ic_launcher"
         android:label="TELECONTROL Público"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <!-- Separate Activity, separate task and private process; not externally launchable. -->
+        <activity
+            android:name="io.github.josxtm.mangossh.community.MainActivity"
+            android:exported="false"
+            android:process=":mangossh"
+            android:taskAffinity="es.josxtm.telecontrol.community.mangossh"
+            android:launchMode="singleTask"
+            android:label="MangoSSH"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar"/>
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

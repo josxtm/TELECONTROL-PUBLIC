@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -65,6 +67,24 @@ public final class MainActivity extends Activity {
         });
         label(column, "TELECONTROL Público", 26);
         label(column, "Consulta local · edición pública independiente", 16);
+        // The only addition to TELECONTROL’s existing home screen.
+        ImageButton mango = new ImageButton(this);
+        mango.setImageResource(R.drawable.ic_mangossh);
+        mango.setContentDescription("Abrir MangoSSH");
+        mango.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        mango.setPadding(dp(8), dp(8), dp(8), dp(8));
+        column.addView(mango, new LinearLayout.LayoutParams(dp(64), dp(64)));
+        mango.setOnClickListener(view -> {
+            if (Build.VERSION.SDK_INT < 26) {
+                new AlertDialog.Builder(this).setTitle("MangoSSH")
+                    .setMessage("El cliente SSH integrado requiere Android 8 o posterior.")
+                    .setPositiveButton("Aceptar", null).show();
+                return;
+            }
+            Intent ssh = new Intent(this, io.github.josxtm.mangossh.community.MainActivity.class);
+            ssh.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(ssh);
+        });
         button(column, "Tema: sistema / claro / oscuro", () -> new AlertDialog.Builder(this)
                 .setTitle("Tema").setItems(new String[]{"Sistema", "Claro", "Oscuro"}, (d, n) -> {
                     getPreferences(MODE_PRIVATE).edit().putString("theme", new String[]{"system", "light", "dark"}[n]).apply(); recreate();

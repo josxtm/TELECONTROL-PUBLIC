@@ -44,6 +44,8 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: gradle --no-daemon :app:connectedDebugAndroidTest
+      - name: Block previews until approved GUI is restored
+        run: python3 tools/gui_parity_gate.py .
       - name: Upload validated public preview
         uses: actions/upload-artifact@v4
         with:

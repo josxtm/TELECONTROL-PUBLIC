@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <!-- Original vector icon: mango with glasses; no external image or data. -->
+    <path android:fillColor="#427E49"
+        android:pathData="M31,16 C32,8 39,5 46,8 C42,14 37,17 31,16 Z" />
+    <path android:fillColor="#70522C"
+        android:pathData="M30,16 L34,7 L36,8 L33,17 Z" />
+    <path android:fillColor="#F0AA45"
+        android:pathData="M32,13 C47,11 53,24 49,40 C46,52 38,58 26,55 C14,52 10,42 13,31 C15,20 22,15 32,13 Z" />
+    <path android:fillColor="#F5C477"
+        android:pathData="M20,25 C23,19 29,18 34,19 C25,22 22,29 22,39 C17,37 17,31 20,25 Z" />
+    <path android:fillColor="#1C2933"
+        android:pathData="M18,29 L29,29 L29,38 L19,38 Z M34,29 L45,29 L45,38 L35,38 Z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M21,31 L26,31 L26,35 L21,35 Z M37,31 L42,31 L42,35 L37,35 Z" />
+    <path android:strokeColor="#1C2933" android:strokeWidth="2.5"
+        android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M29,33 L34,33 M18,31 L14,30 M45,31 L50,29" />
+    <path android:strokeColor="#965322" android:strokeWidth="1.8"
+        android:strokeLineCap="round" android:fillColor="#00000000"
+        android:pathData="M29,44 Q33,47 37,43" />
+</vector>

@@ -18,12 +18,18 @@ def inspect(apk, build_tools):
         return subprocess.check_output([str(tools / name), *map(str, args)], text=True)
     signature = run("apksigner", "verify", "--print-certs", apk)
     badging = run("aapt", "dump", "badging", apk)
-    if "package: name='es.josxtm.telecontrol.community' versionCode='2'" not in badging:
-        raise ValueError("Unexpected application identity or version")
+    version = re.search(
+        r"package: name='es\.josxtm\.telecontrol\.community' versionCode='([0-9]+)' versionName='v\.1\.0 public - comp\. ([0-9]+)'",
+        badging
+    )
+    if not version or int(version.group(1)) != 10000 + int(version.group(2)):
+        raise ValueError("Unexpected public application identity or compilation version")
     manifest = run("aapt", "dump", "xmltree", apk, "AndroidManifest.xml")
     permissions = re.findall(r"uses-permission: name='([^']+)'", badging)
-    if set(permissions) != {"android.permission.RECORD_AUDIO"}:
+    if set(permissions) != {"android.permission.RECORD_AUDIO", "android.permission.INTERNET"}:
         raise ValueError("Unexpected permissions")
+    if "io.github.josxtm.mangossh.community.MainActivity" not in manifest or ":mangossh" not in manifest:
+        raise ValueError("Isolated MangoSSH activity missing")
     if not re.search(r"allowBackup\([^\n]*=\(type 0x12\)0x0", manifest):
         raise ValueError("Automatic backup must be disabled")
     dex_strings = []
@@ -35,10 +41,15 @@ def inspect(apk, build_tools):
                 continue
             if not (re.fullmatch(r"classes\d*\.dex", name) or name in {"AndroidManifest.xml", "resources.arsc", "META-INF/com/android/build/gradle/app-metadata.properties"}
                     or re.fullmatch(r"res/[A-Za-z0-9_+/-]+\.xml", name)
+                    or re.fullmatch(r"res/mipmap-(?:mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)(?:-v[0-9]+)?/ic_launcher\.png", name)
                     or re.fullmatch(r"META-INF/[A-Za-z0-9_.-]+", name)):
                 raise ValueError("Unreviewed packaged resource")
             if name.startswith("res/raw") or name.startswith("assets/"):
                 raise ValueError("Bundled data is forbidden")
+            if name.startswith("res/mipmap-") and name.endswith("/ic_launcher.png"):
+                artwork = archive.read(name)
+                if not artwork.startswith(bytes.fromhex("89504e470d0a1a0a")) or len(artwork) > 100000:
+                    raise ValueError("Unreviewed launcher image payload")
             if name.startswith("res/") and name.endswith(".xml"):
                 xml_resources.append(run("aapt", "dump", "xmltree", apk, name))
             if name.endswith("app-metadata.properties"):
