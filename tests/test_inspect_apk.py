@@ -91,6 +91,21 @@ class ApkInspectionTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unexpected native ELF"):
             self.run_inspection(extra="lib/arm64-v8a/libtesseract.so", extra_data=bytes(elf))
 
+    def test_reviewed_androidx_drawable_png_allowed(self):
+        # Synthetic image with a valid signature; source-policy gate separately
+        # prevents arbitrary image binaries from entering public app sources.
+        png = bytes.fromhex("89504e470d0a1a0a") + bytes(12)
+        self.assertIn("PASS APK", self.run_inspection(
+            extra="res/drawable-hdpi-v4/abc_sample.9.png", extra_data=png))
+
+    def test_unknown_or_malformed_drawable_rejected(self):
+        png = bytes.fromhex("89504e470d0a1a0a") + bytes(12)
+        with self.assertRaises(ValueError):
+            self.run_inspection(extra="res/raw/sample.png", extra_data=png)
+        with self.assertRaisesRegex(ValueError, "image format"):
+            self.run_inspection(extra="res/drawable-hdpi-v4/abc_sample.9.png",
+                                extra_data=b"not a real PNG")
+
     def test_sensitive_resource_blocked(self):
         with self.assertRaises(ValueError):
             self.run_inspection(resource=".".join(["192", "168", "77", "12"]))
