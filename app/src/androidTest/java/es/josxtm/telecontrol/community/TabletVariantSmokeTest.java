@@ -50,7 +50,25 @@ public final class TabletVariantSmokeTest extends ActivityInstrumentationTestCas
             if (!ready) Thread.sleep(300);
         }
         assertTrue("Expected flavor-specific UI did not load", ready);
-        if (!flavor.equals("tablet")) return;
+        if (!flavor.equals("tablet")) {
+            assertTrue("Mobile must not activate the tablet motion controller",
+                query(web[0], "typeof window.TabletMotionController === 'undefined'"));
+            return;
+        }
+        boolean motionReady = false;
+        for (int attempt = 0; attempt < 20 && !motionReady; attempt++) {
+            motionReady = query(web[0],
+                "Boolean(window.TabletMotionController && window.TabletMotionController.effects.length === 4)");
+            if (!motionReady) Thread.sleep(250);
+        }
+        assertTrue("Tablet motion script did not initialize", motionReady);
+        assertTrue("All four motion patterns and destinations are registered",
+            query(web[0], "(function(){var c=window.TabletMotionController;" +
+                "return c.transitionFor('home','weekly')==='fade-through' " +
+                "&&c.transitionFor('detail','tablet-network')==='shared-x' " +
+                "&&c.transitionFor('home','config')==='shared-z' " +
+                "&&c.transitionFor('home','detail')==='container' " +
+                "&&c.transitionFor('weekly','weekly-detail')==='container';})()"));
         assertTrue("Tablet graph must initially show no claimed measurements",
             query(web[0],
                 "(function(){window.TCTabletView.open();return document.querySelectorAll('#tablet-network article.pending').length===6 && document.getElementById('tablet-status').textContent.includes('NO VERIFICADO')})()"));

@@ -153,6 +153,10 @@
   });
   observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden']});
   render();
+  // Load the motion controller exclusively from the tablet-only entry point.
+  const motionScript=document.createElement('script');
+  motionScript.src='tablet-motion.js';
+  document.body.appendChild(motionScript);
   document.addEventListener('visibilitychange',()=>{
     document.body.classList.toggle('tablet-paused',document.hidden);
     if(!panel.hidden)requestAnimationFrame(drawLinks);

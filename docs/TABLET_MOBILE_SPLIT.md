@@ -7,7 +7,7 @@ Base inicial: PR #7, commit `7c5cf167d072a053bcbe010f9faead557438a776`. No fusio
 | Variante | Paquete | Versión | Orientación |
 | --- | --- | --- | --- |
 | MOBILE | `es.josxtm.telecontrol.community` | `v.1.0 public - comp. X` | Sistema / actual |
-| TABLET | `es.josxtm.telecontrol.community.tablet` | `v.1.0 tablet - comp. X` | Horizontal preferida, redimensionable |
+| TABLET | `es.josxtm.telecontrol.community.tablet` | `v.1.1 tablet - comp. X` | Horizontal preferida, redimensionable |
 
 La variante MOBILE conserva la misma identidad de paquete y los recursos WebView originales. TABLET tiene almacenamiento privado independiente y utiliza un tema industrial exclusivo cargado dinámicamente. El cambio de identificador de TABLET implica que sus datos no se migran automáticamente desde otra aplicación.
 

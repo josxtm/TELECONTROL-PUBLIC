@@ -30,8 +30,8 @@ android {
         tablet {
             dimension "device"
             applicationIdSuffix ".tablet"
-            versionCode (20000 + publicComp)
-            versionName "v.1.0 tablet - comp. ${publicComp}"
+            versionCode (30000 + publicComp)
+            versionName "v.1.1 tablet - comp. ${publicComp}"
             manifestPlaceholders = [appDisplayName: "TELECONTROL TABLET", mangoTaskAffinity: "es.josxtm.telecontrol.community.tablet.mangossh"]
         }
     }
