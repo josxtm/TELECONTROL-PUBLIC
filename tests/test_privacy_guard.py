@@ -4,7 +4,7 @@ from pathlib import Path
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from privacy_guard import check
+from privacy_guard import check, APPROVED_UI_ASSETS
 
 class PublicGuardTest(unittest.TestCase):
     def test_clean_file_passes(self):
@@ -36,6 +36,22 @@ class PublicGuardTest(unittest.TestCase):
             target = Path(root) / "app/src/main/res/mipmap-mdpi/ic_launcher.png"
             target.parent.mkdir(parents=True)
             target.write_bytes(b"not approved")
+            self.assertTrue(check(root))
+
+    def test_original_home_graphics_are_pinned(self):
+        source = Path(__file__).resolve().parents[1]
+        images = sorted(path for path in APPROVED_UI_ASSETS if "/assets/" in path and path.endswith(".png"))
+        self.assertEqual(2, len(images))
+        with tempfile.TemporaryDirectory() as root:
+            for path in images:
+                source_file = source / path
+                self.assertTrue(source_file.is_file())
+                target = Path(root) / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(source_file.read_bytes())
+            self.assertEqual(check(root), [])
+            altered = Path(root) / images[0]
+            altered.write_bytes(altered.read_bytes() + b"unreviewed")
             self.assertTrue(check(root))
 
     def test_audited_gui_asset_integrity(self):
