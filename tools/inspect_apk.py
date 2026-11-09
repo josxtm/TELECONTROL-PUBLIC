@@ -111,7 +111,12 @@ def inspect(apk, build_tools):
                 allowed = {"org.bouncycastle.jce.provider.BouncyCastleProvider",
                            "org.bouncycastle.jsse.provider.BouncyCastleJsseProvider"}
                 if not entries or len(entries) != len(set(entries)) or not set(entries).issubset(allowed):
-                    raise ValueError("Unexpected security provider registration")
+                    # Class names alone (never credentials or document bodies) identify
+                    # an unexpected dependency registration for a narrow future review.
+                    unknown = sorted({entry for entry in entries if entry not in allowed
+                                      and re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_.$]{0,180}", entry)})
+                    raise ValueError("Unexpected security provider registration (classes only): "
+                                     + ", ".join(unknown or ["invalid descriptor"]))
                 continue
             if re.fullmatch(r"META-INF/services/kotlinx\.coroutines(?:\.[A-Za-z0-9_]+)+", name):
                 # Kotlin coroutines ServiceLoader registrations are text metadata
