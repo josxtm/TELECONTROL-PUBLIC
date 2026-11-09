@@ -128,6 +128,18 @@ class ApkInspectionTest(unittest.TestCase):
                 extra="kotlin/custom/private_data.kotlin_builtins",
                 extra_data=b"synthetic kotlin metadata")
 
+    def test_ssh_library_pem_header_is_not_a_private_key(self):
+        # Public SSH parsers contain textual PEM header constants.
+        header = "-----" + "BEGIN PRIVATE KEY" + "-----"
+        self.assertIn("PASS APK", self.run_inspection(resource=header))
+
+    def test_realistic_embedded_pem_body_is_blocked(self):
+        header = "-----" + "BEGIN PRIVATE KEY" + "-----"
+        footer = "-----" + "END PRIVATE KEY" + "-----"
+        fake_key = header + "\\n" + ("A" * 160) + "\\n" + footer
+        with self.assertRaisesRegex(ValueError, "embedded credential material"):
+            self.run_inspection(resource=fake_key)
+
     def test_sensitive_resource_blocked(self):
         with self.assertRaises(ValueError):
             self.run_inspection(resource=".".join(["192", "168", "77", "12"]))
