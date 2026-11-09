@@ -24,8 +24,8 @@ def matches_approved_artwork(path, expected):
 APPROVED_UI_ASSETS = {
     "app/src/main/assets/app.js": "64e49f1bc579ba9e756b488bb259fb9ef40a5baf",
     "app/src/main/assets/backup.js": "5bb9568de153b74f46d21f594575858e721765c7",
-    "app/src/main/assets/brand-a.svg": "d17e18dd6060db991911123cade92ac1c52cd069",
-    "app/src/main/assets/brand-b.svg": "b29b1cde32d61675603943466ca7b4bece473c41",
+    "app/src/main/assets/naturgy.png": "025897fef73d6fd9bc2ce27f08a29414fc3ef119",
+    "app/src/main/assets/eiffage.png": "145cf5bdf3bb23874e482aa285b138b3155f9bcc",
     "app/src/main/assets/catalog-store.js": "1b5f1ebd197680126706b8b7b8d11e96b76c5ace",
     "app/src/main/assets/catalog-worker.js": "08c6ba79d64db2b5c3a188cf4ef443130567e4b3",
     "app/src/main/assets/catalog.js": "7a501925da397a3d334702ead59da12371c0622a",
@@ -77,7 +77,8 @@ def check(root):
             if not matches_approved_artwork(p, APPROVED_UI_ASSETS[rel]):
                 problems.append((rel, "GUI asset differs from reviewed source"))
             elif p.suffix.lower() in {".jpg", ".png"}:
-                if p.stat().st_size > 100_000 or not p.read_bytes().startswith(b"\xff\xd8"):
+                signature = b"\xff\xd8" if p.suffix.lower() == ".jpg" else bytes.fromhex("89504e470d0a1a0a")
+                if p.stat().st_size > 100_000 or not p.read_bytes().startswith(signature):
                     problems.append((rel, "invalid approved GUI image"))
                 continue
             elif p.stat().st_size > 200_000:
