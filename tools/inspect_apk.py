@@ -60,6 +60,11 @@ def inspect(apk, build_tools):
     xml_resources = []
     metadata = ""
     with zipfile.ZipFile(apk) as archive:
+        # Report only JNI library basenames; never log file contents or private values.
+        native_names = sorted({n.rsplit("/", 1)[-1] for n in archive.namelist()
+            if re.fullmatch(r"lib/(?:armeabi-v7a|arm64-v8a|x86|x86_64)/lib[A-Za-z0-9_+.-]+\\.so", n)})
+        if native_names:
+            print("Native library audit (names only): " + ", ".join(native_names))
         for name in archive.namelist():
             if name.endswith("/"):
                 continue
