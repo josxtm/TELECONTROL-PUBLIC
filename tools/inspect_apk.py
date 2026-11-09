@@ -73,7 +73,7 @@ def inspect(apk, build_tools, flavor="mobile"):
     expected_minor = "1" if flavor == "tablet" else "0"
     pattern = (
         r"package: name='" + re.escape(expected_package) +
-        r"' versionCode='([0-9]+)' versionName='v\.1\.0 " + expected_label + r" - comp\. ([0-9]+)'"
+        r"' versionCode='([0-9]+)' versionName='v\.1\." + expected_minor + " " + expected_label + r" - comp\. ([0-9]+)'"
     )
     version = re.search(pattern, badging)
     offset = 30000 if flavor == "tablet" else 10000
