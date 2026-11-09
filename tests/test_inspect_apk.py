@@ -10,7 +10,7 @@ from inspect_apk import inspect
 
 
 class ApkInspectionTest(unittest.TestCase):
-    def run_inspection(self, extra=None, permissions=("android.permission.RECORD_AUDIO", "android.permission.INTERNET", "android.permission.CAMERA"), version="10003", compilation="3", resource="safe synthetic text"):
+    def run_inspection(self, extra=None, extra_data="synthetic", permissions=("android.permission.RECORD_AUDIO", "android.permission.INTERNET", "android.permission.CAMERA"), version="10003", compilation="3", resource="safe synthetic text"):
         def command(args, **kwargs):
             if "apksigner" in args[0]:
                 return "Signer #1 certificate SHA-256 digest: synthetic-test-only"
@@ -26,7 +26,7 @@ class ApkInspectionTest(unittest.TestCase):
             with zipfile.ZipFile(apk, "w") as archive:
                 archive.writestr("AndroidManifest.xml", "synthetic")
                 if extra:
-                    archive.writestr(extra, "synthetic")
+                    archive.writestr(extra, extra_data)
             with patch("inspect_apk.subprocess.check_output", side_effect=command):
                 return inspect(apk, root)
 
@@ -62,6 +62,34 @@ class ApkInspectionTest(unittest.TestCase):
     def test_fake_launcher_image_blocked(self):
         with self.assertRaises(ValueError):
             self.run_inspection(extra="res/mipmap-mdpi-v4/ic_launcher.png")
+
+    def test_reviewed_native_dependency_elf_accepted(self):
+        # Synthetic 64-bit ARM ELF header with the exact approved library basename.
+        elf = bytearray(64)
+        elf[:4] = bytes.fromhex("7f454c46")
+        elf[4] = 2
+        elf[5] = 1
+        elf[18:20] = (183).to_bytes(2, "little")
+        self.assertIn("PASS APK", self.run_inspection(
+            extra="lib/arm64-v8a/libtesseract.so", extra_data=bytes(elf)))
+
+    def test_unreviewed_native_dependency_rejected(self):
+        elf = bytearray(64)
+        elf[:4] = bytes.fromhex("7f454c46")
+        elf[4] = 2
+        elf[5] = 1
+        elf[18:20] = (183).to_bytes(2, "little")
+        with self.assertRaisesRegex(ValueError, "Unexpected native library path"):
+            self.run_inspection(extra="lib/arm64-v8a/libunaudited.so", extra_data=bytes(elf))
+
+    def test_mismatched_native_abi_rejected(self):
+        elf = bytearray(64)
+        elf[:4] = bytes.fromhex("7f454c46")
+        elf[4] = 2
+        elf[5] = 1
+        elf[18:20] = (62).to_bytes(2, "little")
+        with self.assertRaisesRegex(ValueError, "Unexpected native ELF"):
+            self.run_inspection(extra="lib/arm64-v8a/libtesseract.so", extra_data=bytes(elf))
 
     def test_sensitive_resource_blocked(self):
         with self.assertRaises(ValueError):
