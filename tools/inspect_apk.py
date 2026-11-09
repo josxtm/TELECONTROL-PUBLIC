@@ -82,6 +82,18 @@ def inspect(apk, build_tools):
         for name in archive.namelist():
             if name.endswith("/"):
                 continue
+            if re.fullmatch(r"META-INF/services/kotlinx\.coroutines(?:\.[A-Za-z0-9_]+)+", name):
+                # Kotlin coroutines ServiceLoader registrations are text metadata
+                # from pinned runtime dependencies, never user- or CT-specific data.
+                info = archive.getinfo(name)
+                if info.file_size > 4096:
+                    raise ValueError("Oversized coroutine service descriptor")
+                services = archive.read(name).decode("utf-8").splitlines()
+                services = [line.strip() for line in services if line.strip() and not line.lstrip().startswith("#")]
+                if not services or any(not re.fullmatch(
+                    r"kotlinx\.coroutines(?:\.[A-Za-z0-9_$]+)+", line) for line in services):
+                    raise ValueError("Unexpected coroutine service registration")
+                continue
             if name.startswith("lib/"):
                 parts = name.split("/")
                 if len(parts) != 3 or parts[1] not in EXPECTED_ELF_MACHINE or parts[2] not in APPROVED_NATIVE_BASENAMES:
