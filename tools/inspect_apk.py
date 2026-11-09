@@ -204,8 +204,8 @@ def inspect(apk, build_tools):
     # material (header, substantial base64 body and matching footer) and tokens.
     embedded_token = re.search(r"(?:github_pat_|gh[pousr]_)[A-Za-z0-9_]{16,}", compiled)
     embedded_pem = re.search(
-        r"-{5}BEGIN ([A-Z ]*PRIVATE KEY)-{5}\\s*[A-Za-z0-9+/=\\s]{96,}-"
-        r"{5}END \\1-{5}", compiled
+        r"-{5}BEGIN ([A-Z ]*PRIVATE KEY)-{5}\s*[A-Za-z0-9+/=\s]{96,}-"
+        r"{5}END \1-{5}", compiled
     )
     if embedded_token or embedded_pem:
         flagged.append("embedded credential material")
