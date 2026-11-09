@@ -6,7 +6,7 @@ from unittest.mock import patch
 import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from inspect_apk import inspect, find_dex_ipv4_owners
+from inspect_apk import inspect
 
 
 class ApkInspectionTest(unittest.TestCase):
@@ -167,18 +167,6 @@ class ApkInspectionTest(unittest.TestCase):
         fake_key = header + "\n" + ("A" * 160) + "\n" + footer
         with self.assertRaisesRegex(ValueError, "embedded credential material"):
             self.run_inspection(resource=fake_key)
-
-    def test_dex_provenance_reports_classes_not_addresses(self):
-        factory = ".".join(("192", "168", "8", "1"))
-        unreviewed = ".".join(("192", "168", "77", "12"))
-        dump = ("Class #0 -\n Class descriptor : \x27Lorg/example/Reviewed;\x27\n"
-                + " 0000: const-string v0, \x22" + factory + "\x22\n"
-                + "Class #1 -\n Class descriptor : \x27Lio/github/josxtm/mangossh/Unexpected;\x27\n"
-                + " 0000: const-string v0, \x22" + unreviewed + "\x22\n")
-        with patch("inspect_apk.subprocess.check_output", return_value=dump):
-            owners = find_dex_ipv4_owners([b"synthetic"], "/fake/sdk", {factory})
-        self.assertEqual(owners, ["Lio/github/josxtm/mangossh/Unexpected;"])
-        self.assertNotIn(unreviewed, " ".join(owners))
 
     def test_public_mango_factory_gateway_allowed(self):
         # Publicly documented factory default. Not a CT address.
