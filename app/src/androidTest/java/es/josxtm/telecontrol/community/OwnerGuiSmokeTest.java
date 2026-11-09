@@ -46,7 +46,7 @@ public final class OwnerGuiSmokeTest extends ActivityInstrumentationTestCase2<es
             CountDownLatch done = new CountDownLatch(1);
             final boolean[] valid = {false};
             getInstrumentation().runOnMainSync(() -> web.evaluateJavascript(
-                "Boolean(document.getElementById('home') && document.getElementById('open-search') && document.getElementById('home-mango') && document.getElementById('config') && document.getElementById('detail'))",
+                "Boolean(document.getElementById('home') && document.getElementById('open-search') && document.getElementById('home-mango') && document.getElementById('config') && document.getElementById('detail') && Array.from(document.querySelectorAll('#home .logos img')).length === 2 && Array.from(document.querySelectorAll('#home .logos img')).every(img => img.complete && img.naturalWidth > 0))",
                 result -> {
                     valid[0] = "true".equals(result);
                     done.countDown();
