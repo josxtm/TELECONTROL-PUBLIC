@@ -16,6 +16,18 @@ OCR_SHA256 = {
 }
 
 
+# Exact native libraries included by pinned CameraX and OCR dependencies.
+# Do not allow an arbitrary ELF merely because it is placed under lib/.
+APPROVED_NATIVE_BASENAMES = frozenset({
+    "libimage_processing_util_jni.so", "libsurface_util_jni.so",
+    "libjpeg.so", "libleptonica.so", "libpngx.so", "libtesseract.so",
+})
+EXPECTED_ELF_MACHINE = {
+    "armeabi-v7a": 40, "arm64-v8a": 183, "x86": 3, "x86_64": 62,
+}
+MAX_NATIVE_BYTES = 32 * 1024 * 1024
+
+
 def inspect(apk, build_tools):
     apk = Path(apk)
     tools = Path(build_tools)
@@ -65,8 +77,23 @@ def inspect(apk, build_tools):
             if n.startswith("lib/") and n.endswith(".so") and len(n) < 180})
         if native_names:
             print("Native library audit (names only): " + ", ".join(native_names), flush=True)
+        if len(archive.namelist()) != len(set(archive.namelist())):
+            raise ValueError("Duplicated APK archive path")
         for name in archive.namelist():
             if name.endswith("/"):
+                continue
+            if name.startswith("lib/"):
+                parts = name.split("/")
+                if len(parts) != 3 or parts[1] not in EXPECTED_ELF_MACHINE or parts[2] not in APPROVED_NATIVE_BASENAMES:
+                    raise ValueError("Unexpected native library path")
+                entry = archive.getinfo(name)
+                if entry.file_size < 64 or entry.file_size > MAX_NATIVE_BYTES:
+                    raise ValueError("Unexpected native library size")
+                native = archive.read(name)
+                if (native[:4] != b"\x7fELF" or native[5] != 1
+                        or int.from_bytes(native[18:20], "little") != EXPECTED_ELF_MACHINE[parts[1]]
+                        or native[4] != (2 if parts[1] in {"arm64-v8a", "x86_64"} else 1)):
+                    raise ValueError("Unexpected native ELF format or target")
                 continue
             # Frontend files are audited by exact Git blob ID; OCR models are
             # public-licensed downloads with pinned SHA-256, never private CT data.
