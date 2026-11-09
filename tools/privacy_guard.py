@@ -30,7 +30,7 @@ APPROVED_UI_ASSETS = {
     "app/src/main/assets/catalog-worker.js": "08c6ba79d64db2b5c3a188cf4ef443130567e4b3",
     "app/src/main/assets/catalog.js": "7a501925da397a3d334702ead59da12371c0622a",
     "app/src/main/assets/icons.js": "bbbc10a065d0b64bdeeed3a57376172182bf3a9a",
-    "app/src/main/assets/index.html": "f63ceb62b3feecc7985d775b4e41ea99213bc132",
+    "app/src/main/assets/index.html": "0253825779fea92d55dee8ff2dea3fd08897d590",
     "app/src/main/assets/mangossh_launcher.jpg": "1d4ce8b2ab0abdfc919d13ea31755ed73953c6df",
     "app/src/main/assets/journal-search.js": "b57bf86bdeb183e4b6654cfb666637f8fa28e2be",
     "app/src/main/assets/ocr/LICENSE.txt": "d645695673349e3947e8e5ae42332d0ac3164cd7",
