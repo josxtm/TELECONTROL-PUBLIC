@@ -194,8 +194,19 @@ def inspect(apk, build_tools):
     # rather than treating every public brand name as confidential.
     compiled = resources + "\n" + "\n".join(xml_resources) + "\n" + metadata + "\n" + "\n".join(dex_strings)
     whitelist_ip = {".".join(parts) for parts in (("0", "0", "0", "0"), ("127", "0", "0", "1"), ("255", "255", "255", "255"))}
-    if any(value not in whitelist_ip for value in IP.findall(compiled)) or KEY.search(compiled) or PASSWORD.search(compiled) or TOPOLOGY.search(compiled):
-        raise ValueError("Compiled output contains potentially private operational content")
+    # Report pattern categories only: never print potential credentials, IPs or
+    # operational strings from DEX and resources into a public CI log.
+    flagged = []
+    if any(value not in whitelist_ip for value in IP.findall(compiled)):
+        flagged.append("IPv4 literal")
+    if KEY.search(compiled):
+        flagged.append("credential signature")
+    if PASSWORD.search(compiled):
+        flagged.append("password assignment")
+    if TOPOLOGY.search(compiled):
+        flagged.append("network topology expression")
+    if flagged:
+        raise ValueError("Compiled output contains potentially private operational content: " + ", ".join(flagged))
     certs = "\n".join(line for line in signature.splitlines() if "certificate SHA-256 digest:" in line)
     if not certs:
         raise ValueError("No verified certificate fingerprint")
