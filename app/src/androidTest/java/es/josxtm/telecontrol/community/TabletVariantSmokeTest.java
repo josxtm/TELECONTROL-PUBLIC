@@ -35,6 +35,37 @@ public final class TabletVariantSmokeTest extends ActivityInstrumentationTestCas
         return result[0];
     }
 
+    public void testMobileGridImportSearchAndReload() throws Exception {
+        if (!"mobile".equals(BuildConfig.FLAVOR)) return;
+        es.josxtm.telecontrol.MainActivity activity = getActivity();
+        final WebView[] web = {null};
+        getInstrumentation().runOnMainSync(() -> web[0] = findWebView(activity.getWindow().getDecorView()));
+        assertNotNull(web[0]);
+        awaitQuery(web[0], "Boolean(window.CTApp && document.getElementById('catalog-file').accept.includes('text/csv'))");
+        assertTrue(query(web[0], "(function(){const rows=['Matrícula;Nombre','28TEST;A','82TEST;B','45TEST;C','99TEST;D'];"
+            + "CTApp.importCatalog(new File([rows.join('\\n')],'grid.csv',{type:'text/csv'}));return true;})()"));
+        awaitQuery(web[0], "document.getElementById('catalog-status').textContent.includes('3 CT')");
+        // The previous document still answers evaluateJavascript while reload is being scheduled.
+        assertTrue(query(web[0], "window.gridTestBeforeReload=true"));
+        getInstrumentation().runOnMainSync(() -> web[0].reload());
+        awaitQuery(web[0], "Boolean(!window.gridTestBeforeReload && window.CTApp && document.getElementById('catalog-status').textContent.includes('3 CT'))");
+        for (String prefix : new String[]{"28", "82", "45"}) {
+            assertTrue("Imported prefix must open its detail card: " + prefix, query(web[0],
+                "(function(){CTApp.goHome();CTApp.searchOpen();const q=document.getElementById('query');"
+                + "q.value='" + prefix + "TEST';q.dispatchEvent(new Event('input'));document.getElementById('submit').click();"
+                + "return !document.getElementById('detail').hidden && document.getElementById('fields').textContent.includes(q.value) && q.value.length===6;})()"));
+        }
+        assertTrue(query(web[0], "CTApp.centreInfo('99TEST').bdiName==='No disponible'"));
+    }
+
+    private void awaitQuery(WebView web, String predicate) throws Exception {
+        for (int attempt = 0; attempt < 60; attempt++) {
+            if (query(web, predicate)) return;
+            Thread.sleep(250);
+        }
+        fail("Mobile catalog did not reach the expected state: " + predicate);
+    }
+
     public void testVariantsKeepMobileOriginalAndTabletIndustrialIsolated() throws Exception {
         es.josxtm.telecontrol.MainActivity activity = getActivity();
         final WebView[] web = {null};

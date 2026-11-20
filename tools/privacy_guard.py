@@ -22,13 +22,18 @@ def matches_approved_artwork(path, expected):
 # Audited original GUI source. Only the exact reviewed Git blob contents are
 # allowed to be shipped, and no real IP, token or internal topology may occur.
 APPROVED_UI_ASSETS = {
-    "app/src/main/assets/app.js": "64e49f1bc579ba9e756b488bb259fb9ef40a5baf",
+    "app/src/main/assets/grid-vendor/LICENSES.txt": "4cb261ff1e6f5ea5e0110a8b8ee7548b52d71149",
+    "app/src/main/assets/grid-vendor/sax.js": "3ae6728570523de9a800e0ec5cf20aac5a65cc42",
+    "app/src/main/assets/grid-vendor/jszip.min.js": "ff4cfd5e8fdc49176c2d1d409afa897f40be01f4",
+    "app/src/main/assets/grid-import.js": "d4869c6489e4b2707571495c87ada29e9384cef1",
+    "app/src/main/assets/grid-excel.js": "5ff83615ad42497300cc97c7a5ad9665f07aa67e",
+    "app/src/main/assets/app.js": "5ba5cdfe29748604c9ed5b5fe5b2b48025e7925f",
     "app/src/main/assets/backup.js": "5bb9568de153b74f46d21f594575858e721765c7",
     "app/src/main/assets/naturgy.png": "025897fef73d6fd9bc2ce27f08a29414fc3ef119",
     "app/src/main/assets/eiffage.png": "145cf5bdf3bb23874e482aa285b138b3155f9bcc",
     "app/src/main/assets/catalog-store.js": "1b5f1ebd197680126706b8b7b8d11e96b76c5ace",
-    "app/src/main/assets/catalog-worker.js": "08c6ba79d64db2b5c3a188cf4ef443130567e4b3",
-    "app/src/main/assets/catalog.js": "7a501925da397a3d334702ead59da12371c0622a",
+    "app/src/main/assets/catalog-worker.js": "680a506b979359053ba2f98c4106b2738273cb1f",
+    "app/src/main/assets/catalog.js": "b5376340fb1eaac660a27f0350e44bec8688a03f",
     "app/src/main/assets/icons.js": "bbbc10a065d0b64bdeeed3a57376172182bf3a9a",
     "app/src/main/assets/index.html": "0253825779fea92d55dee8ff2dea3fd08897d590",
     "app/src/main/assets/mangossh_launcher.jpg": "1d4ce8b2ab0abdfc919d13ea31755ed73953c6df",
