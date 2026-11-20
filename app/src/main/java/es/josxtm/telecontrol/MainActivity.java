@@ -129,6 +129,7 @@ public final class MainActivity extends Activity {
                 if (!"https".equals(uri.getScheme()) || !ORIGIN.equals(uri.getHost())) {
                     return emptyResponse();
                 }
+                if ("/assets/catalog-worker.js".equals(uri.getPath())) return catalogWorkerResponse();
                 WebResourceResponse response = loader.shouldInterceptRequest(uri);
                 return response == null ? emptyResponse() : response;
             }
@@ -221,6 +222,32 @@ public final class MainActivity extends Activity {
             Uri selected = resultCode == RESULT_OK && data != null ? data.getData() : null;
             pendingFileSelection.onReceiveValue(selected == null ? null : new Uri[]{selected});
             pendingFileSelection = null;
+        }
+    }
+
+    // Requests made by importScripts inside a dedicated WebView worker are not
+    // consistently routed through WebViewClient. Serve a self-contained worker
+    // using the same audited local assets as the browser and host tests.
+    private WebResourceResponse catalogWorkerResponse() {
+        boolean mobile = "mobile".equals(es.josxtm.telecontrol.community.BuildConfig.FLAVOR);
+        String[] scripts = mobile
+            ? new String[]{"catalog.js", "grid-import.js", "grid-vendor/jszip.min.js", "grid-vendor/sax.js",
+                    "grid-excel.js", "catalog-worker.js"}
+            : new String[]{"catalog.js", "catalog-worker.js"};
+        java.io.ByteArrayOutputStream bundle = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        try {
+            for (String script : scripts) {
+                try (java.io.InputStream in = getAssets().open(script)) {
+                    int count;
+                    while ((count = in.read(buffer)) != -1) bundle.write(buffer, 0, count);
+                }
+                bundle.write(10);
+            }
+            return new WebResourceResponse("application/javascript", "UTF-8",
+                new ByteArrayInputStream(bundle.toByteArray()));
+        } catch (java.io.IOException unavailable) {
+            return emptyResponse();
         }
     }
 

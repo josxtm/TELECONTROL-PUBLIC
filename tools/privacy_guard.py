@@ -32,7 +32,7 @@ APPROVED_UI_ASSETS = {
     "app/src/main/assets/naturgy.png": "025897fef73d6fd9bc2ce27f08a29414fc3ef119",
     "app/src/main/assets/eiffage.png": "145cf5bdf3bb23874e482aa285b138b3155f9bcc",
     "app/src/main/assets/catalog-store.js": "1b5f1ebd197680126706b8b7b8d11e96b76c5ace",
-    "app/src/main/assets/catalog-worker.js": "d4d92df00a9274916a4f198ace6ba1a17c82c3d9",
+    "app/src/main/assets/catalog-worker.js": "680a506b979359053ba2f98c4106b2738273cb1f",
     "app/src/main/assets/catalog.js": "b5376340fb1eaac660a27f0350e44bec8688a03f",
     "app/src/main/assets/icons.js": "bbbc10a065d0b64bdeeed3a57376172182bf3a9a",
     "app/src/main/assets/index.html": "0253825779fea92d55dee8ff2dea3fd08897d590",

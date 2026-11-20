@@ -1,5 +1,5 @@
 'use strict';
-importScripts('catalog.js');
+if(typeof CTCatalog==='undefined') importScripts('catalog.js');
 self.onmessage=async event=>{
  const {file,allowGrid}=event.data;
  try{
@@ -13,11 +13,11 @@ self.onmessage=async event=>{
   const grid=allowGrid && (gzip||workbook||(!looksJson && !name.endsWith('.json')));
   let data;
   if(grid){
-   importScripts('grid-import.js');
+   if(typeof CTGrid==='undefined') importScripts('grid-import.js');
    if(file.size>(workbook?CTCatalog.MAX_BYTES:CTGrid.maxBytes)) throw Error('El Grid MT supera el tamaño admitido');
    const progress=(rows,selected)=>self.postMessage({stage:'grid',rows,selected});
    if(workbook){
-    importScripts('grid-vendor/jszip.min.js','grid-vendor/sax.js','grid-excel.js');
+    if(typeof readGridExcel==='undefined') importScripts('grid-vendor/jszip.min.js','grid-vendor/sax.js','grid-excel.js');
     data=await readGridExcel(file,progress);
    }else{
     if(/\.(xlsx|gz)$/.test(name)&&!gzip) throw Error('El archivo comprimido no es válido');
