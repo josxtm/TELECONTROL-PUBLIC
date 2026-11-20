@@ -22,21 +22,35 @@ function returnScreen(){const target=previousScreen==='config'||previousScreen==
 function renderSelection(){const box=el('selected-fields');const fragment=document.createDocumentFragment();visibleFields.forEach(name=>{const row=document.createElement('div');row.style.padding='9px';row.textContent=name+' ';const btn=document.createElement('button');btn.className='action-small';btn.textContent='QUITAR';btn.addEventListener('click',()=>{if(saveFields(visibleFields.filter(x=>x!==name))){el('field-status').textContent='Campo quitado';renderSelection();}});if(!fieldNames.includes(name))row.append(btn);fragment.append(row)});box.replaceChildren(fragment);}
 function showConfig(){if(!openScreen('config'))return;el('config').classList.remove('config-detail-open');document.querySelectorAll('.config-section').forEach(section=>section.hidden=true);const list=el('field-options');list.replaceChildren();availableFields.forEach(name=>{const opt=document.createElement('option');opt.value=name;list.append(opt)});renderSelection()}
 function flushNotes(){return true;}
-const {norm,validateCatalog,MAX_BYTES}=CTCatalog;
+const {norm,validateCatalog}=CTCatalog;
 let DB=null;
 const catalogStatus=el('catalog-status');
+const mobileGrid=window.AppInventor?.supportsGrid?.()===true;
+if(mobileGrid){
+ const picker=el('catalog-file');
+ picker.accept='.json,.csv,.csv.gz,.gz,.tsv,.xlsx,application/json,text/csv,application/gzip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+ document.querySelector('label[for="catalog-file"]').textContent='CATÁLOGO DE CT · GRID MT O JSON';
+ document.querySelector('[data-config-target="config-database"] small').textContent='Importar Grid MT o JSON · Actualizar catálogo';
+ catalogStatus.textContent='Selecciona el Grid MT (.csv, .csv.gz o .xlsx) o tu JSON. Del Grid se importan los prefijos 28, 45 y 82.';
+ el('load-error').textContent='Importa el Grid MT o JSON desde Configurar → Base de datos.';
+ for(const caption of document.querySelectorAll('#help figcaption')) {
+  if(caption.textContent.includes('En Base de datos importa el JSON'))caption.firstChild.textContent=caption.firstChild.textContent.replace('el JSON privado que te facilite el responsable','el Grid MT o el JSON privado');
+ }
+}
 const {readCatalog,saveCatalog}=CTStore.createStore(indexedDB);
-function applyCatalog(data){DB=data.records;extraFieldNames=data.fieldNames;fieldIndices=new Map(fieldNames.map((name,index)=>[name,index]));extraFieldNames.forEach((name,index)=>{if(!fieldIndices.has(name))fieldIndices.set(name,17+index);});availableFields=[...new Set([...fieldNames,...extraFieldNames])];visibleFields=[...new Set([...fieldNames,...visibleFields.filter(name=>fieldIndex(name)>=0)])];sortVisibleFields();if(!safeSet('telecontrol-fields-v1',visibleFields))el('field-status').textContent='El catálogo está guardado, pero no se pudo guardar la selección de campos.';active=null;catalogStatus.textContent='Catálogo instalado: '+Object.keys(DB).length+' CT · '+extraFieldNames.length+' campos.';}
+function applyCatalog(data){DB=data.records;extraFieldNames=data.fieldNames;fieldIndices=new Map(fieldNames.map((name,index)=>[name,index]));extraFieldNames.forEach((name,index)=>{if(!fieldIndices.has(name))fieldIndices.set(name,17+index);});availableFields=[...new Set([...fieldNames,...extraFieldNames])];visibleFields=[...new Set([...fieldNames,...visibleFields.filter(name=>fieldIndex(name)>=0)])];sortVisibleFields();if(!safeSet('telecontrol-fields-v1',visibleFields))el('field-status').textContent='El catálogo está guardado, pero no se pudo guardar la selección de campos.';active=null;catalogStatus.textContent='Catálogo instalado: '+Object.keys(DB).length+' CT · '+(data.format==='TELECONTROL_GRID_MT'?availableFields.length:extraFieldNames.length)+' campos.';}
 let importing=false;
 el('catalog-file').disabled=true;
-const catalogReady=readCatalog().then(data=>{if(data)applyCatalog(validateCatalog(data));}).catch(()=>{catalogStatus.textContent='No se pudo leer el catálogo local. Importa de nuevo el JSON.';}).finally(()=>{el('catalog-file').disabled=false;});
+const catalogReady=readCatalog().then(data=>{if(data)applyCatalog(validateCatalog(data,mobileGrid));}).catch(()=>{catalogStatus.textContent='No se pudo leer el catálogo local. Importa de nuevo el catálogo.';}).finally(()=>{el('catalog-file').disabled=false;});
 function parseFile(file){return new Promise((resolve,reject)=>{
  const worker=new Worker('catalog-worker.js');
  const finish=(error,data)=>{clearTimeout(timer);worker.terminate();error?reject(Error(error)):resolve(data);};
- const timer=setTimeout(()=>finish('La importación ha tardado demasiado. Inténtalo de nuevo.'),120000);
- worker.onmessage=event=>{if(event.data.stage){catalogStatus.textContent=event.data.stage==='reading'?'Leyendo archivo privado...':'Validando estructura del catálogo...';return;}finish(event.data.error,event.data.data);};
+ let timer;
+ const resetTimer=()=>{clearTimeout(timer);timer=setTimeout(()=>finish('La importación ha tardado demasiado. Inténtalo de nuevo.'),120000);};
+ resetTimer();
+ worker.onmessage=event=>{if(event.data.stage){resetTimer();catalogStatus.textContent=event.data.stage==='grid'?('Leyendo Grid MT · '+event.data.rows+' filas · '+event.data.selected+' CT seleccionados'):event.data.stage==='reading'?'Leyendo archivo privado...':'Validando estructura del catálogo...';return;}finish(event.data.error,event.data.data);};
  worker.onerror=()=>finish('No se pudo procesar el archivo');
- worker.postMessage(file);
+ worker.postMessage({file,allowGrid:mobileGrid});
 });}
 async function importCatalog(file){
  if(importing)return false;
@@ -44,7 +58,6 @@ async function importCatalog(file){
  try{
   await catalogReady;
   catalogStatus.textContent='Validando catálogo privado...';
-  if(file.size>MAX_BYTES)throw Error('El archivo supera el límite de 96 MB');
   const data=await parseFile(file);
   catalogStatus.textContent='Guardando catálogo en este dispositivo...';
   await saveCatalog(data);applyCatalog(data);return true;
@@ -55,8 +68,13 @@ el('catalog-file').addEventListener('change',event=>{const file=event.target.fil
 function searchOpen(){el('open-search').setAttribute('aria-expanded','true');el('bad').hidden=true;el('load-error').hidden=!!DB;el('search-panel').hidden=false;el('query').value='';el('query').focus();}
 function searchClose(){el('search-panel').hidden=true;el('open-search').setAttribute('aria-expanded','false');if(currentScreen==='home')el('open-search').focus();}
 function showError(){el('bad').textContent='⚠ CT no encontrado';el('bad').hidden=false;el('query').focus();}
-function normalizeSearchMatricula(value){const cleaned=String(value??'').toUpperCase().replace(/\s+/g,'').replace(/[^A-Z0-9]/g,'');if(!cleaned)return '';if(cleaned[0]!=='2'&&cleaned[0]!=='4')return '';if(cleaned.length===1)return cleaned;return ((cleaned.startsWith('28')||cleaned.startsWith('42'))?cleaned:cleaned[0]).slice(0,40);}
-function search(){el('bad').hidden=true;el('load-error').hidden=!!DB;const q=normalizeSearchMatricula(el('query').value);el('query').value=q;if(!/^(28|42)[A-Z0-9]+$/.test(q)||!DB||!Object.prototype.hasOwnProperty.call(DB,q)){showError();return;}showDetail(DB[q]);}
+const searchPrefixes=mobileGrid ? ['28','42','45','82'] : ['28','42'];
+function normalizeSearchMatricula(value){
+ const cleaned=norm(value).slice(0,40);
+ if(!searchPrefixes.some(prefix=>prefix[0]===cleaned[0]))return '';
+ return cleaned.length<2 || searchPrefixes.includes(cleaned.slice(0,2)) ? cleaned : cleaned[0];
+}
+function search(){el('bad').hidden=true;el('load-error').hidden=!!DB;const q=normalizeSearchMatricula(el('query').value);el('query').value=q;if(q.length<3||!DB||!Object.prototype.hasOwnProperty.call(DB,q)){showError();return;}showDetail(DB[q]);}
 function makeField(label,value){
  const line=document.createElement('div');line.className='field';
  const name=document.createElement('div');name.className='name';name.textContent=label;

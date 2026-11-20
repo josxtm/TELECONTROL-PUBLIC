@@ -87,8 +87,14 @@ public final class MainActivity extends Activity {
                 try {
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                     intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.setType("application/json");
-                    intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/json", "text/plain", "application/octet-stream"});
+                    boolean grid = "mobile".equals(es.josxtm.telecontrol.community.BuildConfig.FLAVOR)
+                        && java.util.Arrays.toString(params.getAcceptTypes()).contains("text/csv");
+                    intent.setType(grid ? "*/*" : "application/json");
+                    intent.putExtra(Intent.EXTRA_MIME_TYPES, grid ? new String[]{"application/json", "text/plain",
+                        "text/csv", "application/csv", "text/tab-separated-values", "application/gzip", "application/x-gzip",
+                        "application/octet-stream", "application/vnd.ms-excel",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+                        : new String[]{"application/json", "text/plain", "application/octet-stream"});
                     startActivityForResult(intent, PICK_JSON_REQUEST);
                 } catch (ActivityNotFoundException e) {
                     pendingFileSelection = null;
@@ -334,6 +340,7 @@ public final class MainActivity extends Activity {
     }
 
     private final class MapsBridge {
+        @JavascriptInterface public boolean supportsGrid(){return "mobile".equals(es.josxtm.telecontrol.community.BuildConfig.FLAVOR);}
         @JavascriptInterface public String packageVersion(){try{android.content.pm.PackageInfo p=getPackageManager().getPackageInfo(getPackageName(),0);return new JSONObject().put("packageName",p.packageName).put("versionName",p.versionName).put("versionCode",android.os.Build.VERSION.SDK_INT>=28?p.getLongVersionCode():p.versionCode).toString();}catch(Exception e){return "{}";}}
         @JavascriptInterface public String loadAppearance(){return getSharedPreferences("telecontrol-appearance-v1",MODE_PRIVATE).getString("appearance",null);}
         @JavascriptInterface public boolean saveAppearance(String value){
