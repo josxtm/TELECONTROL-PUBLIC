@@ -45,10 +45,12 @@ public final class TabletVariantSmokeTest extends ActivityInstrumentationTestCas
         assertTrue(query(web[0], "(function(){const rows=['Matrícula;Nombre','28TEST;A','82TEST;B','45TEST;C','99TEST;D'];"
             + "CTApp.importCatalog(new File([rows.join('\\n')],'grid.csv',{type:'text/csv'}));return true;})()"));
         awaitQuery(web[0], "document.getElementById('catalog-status').textContent.includes('3 CT')");
+        // The previous document still answers evaluateJavascript while reload is being scheduled.
+        assertTrue(query(web[0], "window.gridTestBeforeReload=true"));
         getInstrumentation().runOnMainSync(() -> web[0].reload());
-        awaitQuery(web[0], "Boolean(window.CTApp && document.getElementById('catalog-status').textContent.includes('3 CT'))");
+        awaitQuery(web[0], "Boolean(!window.gridTestBeforeReload && window.CTApp && document.getElementById('catalog-status').textContent.includes('3 CT'))");
         for (String prefix : new String[]{"28", "82", "45"}) {
-            assertTrue("Imported prefix must open its detail card", query(web[0],
+            assertTrue("Imported prefix must open its detail card: " + prefix, query(web[0],
                 "(function(){CTApp.goHome();CTApp.searchOpen();const q=document.getElementById('query');"
                 + "q.value='" + prefix + "TEST';q.dispatchEvent(new Event('input'));document.getElementById('submit').click();"
                 + "return !document.getElementById('detail').hidden && document.getElementById('fields').textContent.includes(q.value) && q.value.length===6;})()"));
